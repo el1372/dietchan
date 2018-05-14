@@ -356,6 +356,16 @@ void write_page_css(http_context *http)
                  "max-width: 200px;"
                  "max-height: 200px;"
                "}"
+               "span.quote {"
+                 "color: #00F;"
+               "}"
+               "span.spoiler {"
+                 "color: #000;"
+                 "background: #000;"
+               "}"
+               "span.spoiler:hover {"
+                 "color: #fff;"
+               "}"
                ".mod-bar {"
                  "text-align: right;"
                "}"
@@ -646,7 +656,8 @@ void write_post(http_context *http, struct post *post, int absolute_url, int fla
 		HTTP_WRITE(      "</div>");
 	}
 	HTTP_WRITE(          "<div class='text'>");
-	HTTP_WRITE_ESCAPED(post_text(post));
+	//HTTP_WRITE_ESCAPED(post_text(post));
+	write_bbcode(http, post_text(post), absolute_url?0:thread);
 	HTTP_WRITE(          "</div>");
 	HTTP_WRITE(        "</div>");
 	HTTP_WRITE(      "</li>"
@@ -700,7 +711,7 @@ void abbreviate_filename(char *buffer, size_t max_length)
 	memmove(&buffer[start], ellipsis, strlen(ellipsis));
 }
 
-static size_t html_escape_char(char *output, char character)
+size_t html_escape_char(char *output, char character)
 {
 	char *entity;
 	switch (character) {
@@ -731,6 +742,25 @@ size_t fmt_escape(char *buf, const char *unescaped)
 	} else {
 		char *o = buf;
 		for (c = unescaped; *c != '\0'; ++c) {
+			size_t d = html_escape_char(o, *c);
+			o += d;
+			escaped_length += d;
+		}
+	}
+	return escaped_length;
+}
+
+size_t fmt_escapen(char *buf, const char *unescaped, size_t n)
+{
+	size_t escaped_length = 0;
+	const char *c;
+	if (!buf) {
+		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
+			escaped_length += html_escape_char(FMT_LEN, *c);
+		}
+	} else {
+		char *o = buf;
+		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
 			size_t d = html_escape_char(o, *c);
 			o += d;
 			escaped_length += d;

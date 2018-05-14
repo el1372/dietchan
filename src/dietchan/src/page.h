@@ -37,6 +37,9 @@ size_t estimate_width(const char *buffer);
 
 char* strescape(const char *unescaped);
 size_t fmt_time(char *out, uint64 ms);
+size_t html_escape_char(char *output, char character);
+size_t fmt_escape(char *buf, const char *unescaped);
+size_t fmt_escapen(char *buf, const char *unescaped, size_t n);
 
 // These don't really belong here, find better location
 int can_post(http_context *http, int write_header, struct ip *ip, struct board *board);
