@@ -267,7 +267,7 @@ static int edit_board_page_finish (http_context *http)
 	}
 
 
-	HTTP_REDIRECT("302 Found", "/bbs/dashboard");
+	HTTP_REDIRECT("302 Found", PREFIX "/dashboard");
 }
 
 static void edit_board_page_finalize(http_context *http)

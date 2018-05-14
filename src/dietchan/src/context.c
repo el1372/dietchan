@@ -146,7 +146,7 @@ void context_eof(context *ctx)
 }
 
 #ifdef BUFFER_WRITES
-void context_write_data(context *ctx, void *buf, size_t length)
+void context_write_data(context *ctx, const void *buf, size_t length)
 {
 	static const size_t chunk_size = 10*4096; // 10 pages
 	for (;;) {

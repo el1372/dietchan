@@ -6,11 +6,17 @@
 #define MEGA (1024UL*1024UL)
 #define GIGA (1024UL*1024UL*1024UL)
 
+// -- Server stuff --
+// The virtual "directory" in which the imageboard resides.
+// E.g. if it should appear in http://example.com/foo/bar/, then the prefix is /foo/bar
+#define PREFIX                           ""
+// The path where uploads and static content are stored. Not visible to the public (although the content is).
+#define DOC_ROOT                    "./www"
+
 // -- Flood limits --
 
 // Number of seconds to wait between creating two posts (seconds)
-//#define FLOOD_LIMIT                    10
-#define FLOOD_LIMIT                       0
+#define FLOOD_LIMIT                      10
 // Number of seconds to wait between creating two reports (seconds)
 #define REPORT_FLOOD_LIMIT               10
 

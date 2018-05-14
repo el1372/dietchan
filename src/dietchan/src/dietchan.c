@@ -4,6 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <libowfat/socket.h>
 #include <libowfat/ip4.h>
 #include <libowfat/io.h>
@@ -66,48 +67,48 @@ int request (http_context *http, http_method method, char *path, char *query)
 	http->file_end     = default_file_end;
 	http->finish       = default_finish;
 
-	if (str_equal(path, "/bbs/post")) {
+	if (str_equal(path, PREFIX "/post")) {
 		post_page_init(http);
 		goto found;
 	}
 
-	if (str_equal(path, "/bbs/mod")) {
+	if (str_equal(path, PREFIX "/mod")) {
 		mod_page_init(http);
 		goto found;
 	}
 
-	if (str_equal(path, "/bbs/login")) {
+	if (str_equal(path, PREFIX "/login")) {
 		login_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/dashboard")) {
+	if (str_start(path, PREFIX "/dashboard")) {
 		dashboard_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/edit_user")) {
+	if (str_start(path, PREFIX "/edit_user")) {
 		edit_user_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/edit_board")) {
+	if (str_start(path, PREFIX "/edit_board")) {
 		edit_board_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/uploads/") ||
-	    str_start(path, "/bbs/captchas/")) {
+	if (str_start(path, PREFIX "/uploads/") ||
+	    str_start(path, PREFIX "/captchas/")) {
 		static_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/") && path[strlen(path)-1] != '/') {
+	if (str_start(path, PREFIX "/") && path[strlen(path)-1] != '/') {
 		thread_page_init(http);
 		goto found;
 	}
 
-	if (str_start(path, "/bbs/")) {
+	if (str_start(path, PREFIX "/")) {
 		board_page_init(http);
 		goto found;
 	}
@@ -253,8 +254,12 @@ int main(int argc, char* argv[])
 
 	signal(SIGPIPE, SIG_IGN);
 
-	if (db_init("bbs_db") < 0)
+	if (db_init("dietchan_db") < 0)
 		return -1;
+
+	mkdir(DOC_ROOT, 0755);
+	mkdir(DOC_ROOT "/uploads", 0755);
+	mkdir(DOC_ROOT "/captchas", 0755);
 
 	generate_captchas();
 

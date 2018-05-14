@@ -400,7 +400,7 @@ static int edit_user_page_finish (http_context *http)
 	}
 
 
-	HTTP_REDIRECT("302 Found", "/bbs/dashboard");
+	HTTP_REDIRECT("302 Found", PREFIX "/dashboard");
 
 }
 

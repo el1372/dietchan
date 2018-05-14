@@ -1,5 +1,6 @@
 #include "captcha.h"
 
+#include "config.h"
 #include <assert.h>
 #include <time.h>
 #include <libowfat/str.h>
@@ -86,7 +87,7 @@ static void captcha_job_start()
 	strcat(command, " -r ");
 	fmt_int(&command[strlen(command)], seed);
 	strcat(command, " -d 140x50 -s 4");
-	strcat(command, " | magick tga:- -resize 25% png8:/srv/http/bbs/captchas/");
+	strcat(command, " | magick tga:- -resize 25% png8:" DOC_ROOT "/captchas/");
 	fmt_xlong(&command[strlen(command)], info->id);
 	strcat(command, ".png");
 

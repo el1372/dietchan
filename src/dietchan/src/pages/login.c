@@ -25,7 +25,7 @@ void login_page_init(http_context *http)
 	http->finish       = login_page_finish;
 	http->finalize     = login_page_finalize;
 
-	page->redirect = strdup("/bbs/dashboard");
+	page->redirect = strdup(PREFIX "/dashboard");
 	memcpy(&page->ip, &http->ip, sizeof(struct ip));
 }
 
@@ -81,7 +81,7 @@ static int  login_page_finish (http_context *http)
 		HTTP_WRITE("<div class='top-bar'>");
 		write_board_bar(http);
 		HTTP_WRITE("</div>");
-		HTTP_WRITE("<p><form action='/bbs/login' method='post'>"
+		HTTP_WRITE("<p><form action='" PREFIX "/login' method='post'>"
 		             "<input type='hidden' name='redirect' value='");
 		HTTP_WRITE_ESCAPED(page->redirect);
 		HTTP_WRITE(  "'>"
@@ -146,7 +146,7 @@ static int  login_page_finish (http_context *http)
 	HTTP_STATUS_REDIRECT("302 Success", page->redirect);
 	HTTP_WRITE("Set-Cookie:session=");
 	HTTP_WRITE_DYNAMIC(sid);
-	HTTP_WRITE(";path=/bbs/;\r\n");
+	HTTP_WRITE(";path=" PREFIX "/;\r\n");
 	HTTP_BODY();
 	HTTP_EOF();
 }

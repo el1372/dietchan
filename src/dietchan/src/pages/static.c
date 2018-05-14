@@ -32,6 +32,8 @@ void static_page_init(http_context *http)
 	http->header       = static_page_header;
 	http->finish       = static_page_finish;
 	http->finalize     = static_page_finalize;
+
+	page->doc_root = realpath(DOC_ROOT "/", 0);
 }
 
 static int static_page_request (http_context *http, http_method method, char *path, char *query)
@@ -41,49 +43,28 @@ static int static_page_request (http_context *http, http_method method, char *pa
 	if (method != HTTP_GET)
 		HTTP_FAIL(METHOD_NOT_ALLOWED);
 
-	if (!str_start(path, "/bbs/"))
+	if (!str_start(path, PREFIX "/"))
 		HTTP_FAIL(FORBIDDEN);
 
-	char *rel_path = &path[strlen("/bbs/")];
-	char *docroot = "/srv/http/bbs/";
-	char *abs_path = alloca(strlen(docroot) + strlen(rel_path) + 1);
-	strcpy(abs_path, docroot);
+	char *rel_path = &path[strlen(PREFIX)];
+	char *abs_path = alloca(strlen(page->doc_root) + strlen(rel_path) + 1);
+	strcpy(abs_path, page->doc_root);
 	strcat(abs_path, rel_path);
 
 	// Resolve ./, ../, symlinks etc.
+	page->real_path = realpath(abs_path, 0);
 
-	//page->real_path = realpath(abs_path, NULL);
-	// Urgh... non-cvs versions of dietlibc don't conform to POSIX.1-2008
-	{
-		uint64 path_max;
-		#ifdef PATH_MAX
-			path_max = PATH_MAX;
-		#else
-			path_max = pathconf(path, _PC_PATH_MAX);
-			if (path_max <= 0)
-				path_max = 4096;
-		#endif
-		page->real_path = malloc(path_max);
-		if (!realpath(abs_path, page->real_path)) {
-			free(page->real_path);
-			page->real_path = NULL;
-		}
-	}
-
-	if (!page->real_path) {
-		// realpath fails if a file doesn't exist
+	// realpath fails if a file doesn't exist
+	if (!page->real_path)
 		HTTP_FAIL(NOT_FOUND);
-	}
 
 	// Check that we are still in the docroot
-	if (!str_start(page->real_path, docroot)) {
+	if (!str_start(page->real_path, page->doc_root))
 		HTTP_FAIL(NOT_FOUND);
-	}
 
 	// Hide any hidden files (staring with a .)
-	if (strstr(page->real_path, "/.") != NULL) {
+	if (strstr(page->real_path, "/.") != NULL)
 		HTTP_FAIL(NOT_FOUND);
-	}
 }
 
 static int static_page_header (http_context *http, char *key, char *val)
@@ -138,4 +119,5 @@ static void static_page_finalize (http_context *http)
 {
 	struct static_page *page = (struct static_page*)http->info;
 	if (page->real_path) free(page->real_path);
+	if (page->doc_root)  free(page->doc_root);
 }

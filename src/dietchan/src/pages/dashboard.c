@@ -146,10 +146,10 @@ void write_dashboard_header(http_context *http, uint64 user_id)
 	             "</head>"
 	             "<body>"
 	               "<div style='float:right'>"
-	                 "<a href='/bbs/edit_user?action=edit&user_id=");
+	                 "<a href='" PREFIX "/edit_user?action=edit&user_id=");
 	HTTP_WRITE_ULONG(user_id);
 	HTTP_WRITE(      "'>Konto bearbeiten</a> "
-	                 "<a href='/bbs/login?logout&redirect=/bbs/login'>Ausloggen</a>"
+	                 "<a href='" PREFIX "/login?logout&redirect=" PREFIX "/login'>Ausloggen</a>"
 	               "</div>"
 	               "<h1>Kontrollzentrum</h1>");
 }
@@ -164,7 +164,7 @@ static int  dashboard_page_finish (http_context *http)
 	struct dashboard_page *page = (struct dashboard_page*)http->info;
 
 	if (!page->user) {
-		HTTP_REDIRECT("307 Temporary Redirect", "/bbs/login?redirect=/bbs/dashboard");
+		HTTP_REDIRECT("307 Temporary Redirect", PREFIX "/login?redirect=" PREFIX "/dashboard");
 		return ERROR;
 	}
 
@@ -181,28 +181,28 @@ static int  dashboard_page_finish (http_context *http)
 		           "<table>"
 		             "<tr><th>Name (URL)</th><th>Title</th><th></th></tr>");
 		for (struct board *board = master_first_board(master); board; board=board_next_board(board)) {
-			HTTP_WRITE("<tr><td><a href='/bbs/");
+			HTTP_WRITE("<tr><td><a href='" PREFIX "/");
 			HTTP_WRITE_ESCAPED(board_name(board));
 			HTTP_WRITE("/'>/");
 			HTTP_WRITE_ESCAPED(board_name(board));
 			HTTP_WRITE("/</a></td><td>");
 			HTTP_WRITE_ESCAPED(board_title(board));
 			HTTP_WRITE("</td><td>"
-			           "<a class='button' href='/bbs/edit_board?action=move&amp;move=-1&amp;board_id=");
+			           "<a class='button' href='" PREFIX "/edit_board?action=move&amp;move=-1&amp;board_id=");
 			HTTP_WRITE_ULONG(board_id(board));
 			HTTP_WRITE("'>▲</a><span class='space'> </span>"
-			           "<a class='button' href='/bbs/edit_board?action=move&amp;move=1&amp;board_id=");
+			           "<a class='button' href='" PREFIX "/edit_board?action=move&amp;move=1&amp;board_id=");
 			HTTP_WRITE_ULONG(board_id(board));
 			HTTP_WRITE("'>▼</a><span class='space'> </span>"
-			           "<a class='button' href='/bbs/edit_board?action=edit&amp;board_id=");
+			           "<a class='button' href='" PREFIX "/edit_board?action=edit&amp;board_id=");
 			HTTP_WRITE_ULONG(board_id(board));
 			HTTP_WRITE("'>Bearbeiten</a><span class='space'> </span>"
-			           "<a class='button' href='/bbs/edit_board?action=delete&amp;board_id=");
+			           "<a class='button' href='" PREFIX "/edit_board?action=delete&amp;board_id=");
 			HTTP_WRITE_ULONG(board_id(board));
 			HTTP_WRITE("'>Löschen</a></td></tr>");
 		}
 		HTTP_WRITE("</table></p>"
-		           "<p><a class='button' href='/bbs/edit_board?action=add'>Neues Brett hinzufügen</a></p>"
+		           "<p><a class='button' href='" PREFIX "/edit_board?action=add'>Neues Brett hinzufügen</a></p>"
 		           "<h2>Benutzer</h2>"
 		           "<p>"
 		           "<table>"
@@ -241,15 +241,15 @@ static int  dashboard_page_finish (http_context *http)
 					}
 				}
 			}
-			HTTP_WRITE("</td><td><a class='button' href='/bbs/edit_user?action=edit&amp;user_id=");
+			HTTP_WRITE("</td><td><a class='button' href='" PREFIX "/edit_user?action=edit&amp;user_id=");
 			HTTP_WRITE_ULONG(user_id(user));
 			HTTP_WRITE("'>Bearbeiten</a><span class='space'> </span>"
-			           "<a class='button' href='/bbs/edit_user?action=delete&amp;user_id=");
+			           "<a class='button' href='" PREFIX "/edit_user?action=delete&amp;user_id=");
 			HTTP_WRITE_ULONG(user_id(user));
 			HTTP_WRITE("'>Löschen</a></td></tr>");
 		}
 		HTTP_WRITE("</table>"
-		           "<p><a class='button' href='/bbs/edit_user?action=add'>Neuen Benutzer hinzufügen</a></p>");
+		           "<p><a class='button' href='" PREFIX "/edit_user?action=add'>Neuen Benutzer hinzufügen</a></p>");
 	}
 
 	// Reports
@@ -263,8 +263,8 @@ static int  dashboard_page_finish (http_context *http)
 				continue;
 			if (!any_report) {
 				any_report = 1;
-		    	HTTP_WRITE("<form action='/bbs/mod' method='post'>"
-		    	           "<input type='hidden' name='redirect' value='/bbs/dashboard'>"
+		    	HTTP_WRITE("<form action='" PREFIX "/mod' method='post'>"
+		    	           "<input type='hidden' name='redirect' value='" PREFIX "/dashboard'>"
 				           "<p>"
 				           "<table>"
 				             "<tr><th></th><th>Datum</th><th>Brett</th><th>Beitrag</th><th>Vorschau</th><th>Grund</th><th>Kommentar</th></tr>");
@@ -377,10 +377,10 @@ static int  dashboard_page_finish (http_context *http)
 			HTTP_WRITE("</td><td>");
 			if (ban_reason(ban))
 				HTTP_WRITE_ESCAPED(ban_reason(ban));
-			HTTP_WRITE("</td><td><a class='button' href='/bbs/mod?action=edit_ban&amp;redirect=/bbs/dashboard&amp;ban_id=");
+			HTTP_WRITE("</td><td><a class='button' href='" PREFIX "/mod?action=edit_ban&amp;redirect=" PREFIX "/dashboard&amp;ban_id=");
 			HTTP_WRITE_ULONG(ban_id(ban));
 			HTTP_WRITE("'>Bearbeiten</a><span class='space'> </span>"
-			           "<a class='button' href='/bbs/mod?action=delete_ban&amp;redirect=/bbs/dashboard&amp;ban_id=");
+			           "<a class='button' href='" PREFIX "/mod?action=delete_ban&amp;redirect=" PREFIX "/dashboard&amp;ban_id=");
 			HTTP_WRITE_ULONG(ban_id(ban));
 			HTTP_WRITE("'>Löschen</a></tr>");
 		}
@@ -389,7 +389,7 @@ static int  dashboard_page_finish (http_context *http)
 		} else {
 			HTTP_WRITE("<p><i>Keine Banne</i></p>");
 		}
-		HTTP_WRITE("<p><a class='button' href='/bbs/mod?action=ban&amp;redirect=/bbs/dashboard'>Neuen Bann hinzufügen</a></p>");
+		HTTP_WRITE("<p><a class='button' href='" PREFIX "/mod?action=ban&amp;redirect=" PREFIX "/dashboard'>Neuen Bann hinzufügen</a></p>");
 	}
 
 	write_dashboard_footer(http);

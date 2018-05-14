@@ -7,6 +7,7 @@
 #include <libowfat/str.h>
 #include <libowfat/case.h>
 #include "util.h"
+#include "config.h"
 
 db_obj *db;
 struct master *master;
@@ -267,7 +268,7 @@ void upload_free(struct upload *o)
 
 void upload_delete_files(struct upload *upload)
 {
-	char *upload_dir = "/srv/http/bbs/uploads/";
+	char *upload_dir = DOC_ROOT "/uploads/";
 	char *file_path = alloca(strlen(upload_dir) + strlen(upload_file(upload)) + 1);
 	strcpy(file_path, upload_dir);
 	strcat(file_path, upload_file(upload));

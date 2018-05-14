@@ -13,10 +13,11 @@
 #include <libowfat/scan.h>
 #include "util.h"
 #include "captcha.h"
+#include "bbcode.h"
 
 void write_reply_form(http_context *http, int board, int thread, struct captcha *captcha)
 {
-	HTTP_WRITE("<form class='reply' action='/bbs/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"
+	HTTP_WRITE("<form class='reply' action='" PREFIX "/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"
 	           // Bot trap
 	           "<div class='falle'>"
 	             "<del>"
@@ -87,7 +88,7 @@ void write_reply_form(http_context *http, int board, int thread, struct captcha 
 		HTTP_WRITE("<tr>"
 		             "<th></th>"
 		             "<td colspan='2'><center>"
-		               "<img class='captcha' src='/bbs/captchas/");
+		               "<img class='captcha' src='" PREFIX "/captchas/");
 		HTTP_WRITE_XLONG(captcha_id(captcha));
 		HTTP_WRITE(    ".png'></center>"
 		             "</td>"
@@ -126,7 +127,7 @@ void write_board_bar(http_context *http)
 	struct board *board = master_first_board(master);
 	HTTP_WRITE("<div class='boards'>");
 	while (board) {
-		HTTP_WRITE("<span class='board'><a href='/bbs/");
+		HTTP_WRITE("<span class='board'><a href='" PREFIX "/");
 		HTTP_WRITE_ESCAPED(board_name(board));
 		HTTP_WRITE("/' title='");
 		HTTP_WRITE_ESCAPED(board_title(board));
@@ -146,12 +147,12 @@ void write_top_bar(http_context *http, struct user *user, const char *url)
 	HTTP_WRITE("<div class='top-bar-right'>");
 	if (user) {
 		if (user_type(user) == USER_ADMIN || user_type(user) == USER_MOD)
-			HTTP_WRITE("<a href='/bbs/dashboard'>Kontrollzentrum</a><span class='space'> </span>");
-		HTTP_WRITE("<a href='/bbs/login?logout&amp;redirect=");
+			HTTP_WRITE("<a href='" PREFIX "/dashboard'>Kontrollzentrum</a><span class='space'> </span>");
+		HTTP_WRITE("<a href='" PREFIX "/login?logout&amp;redirect=");
 		HTTP_WRITE_ESCAPED(url);
 		HTTP_WRITE("'>Ausloggen</a>");
 	} else {
-		HTTP_WRITE("<a href='/bbs/login?redirect=");
+		HTTP_WRITE("<a href='" PREFIX "/login?redirect=");
 		HTTP_WRITE_ESCAPED(url);
 		HTTP_WRITE("'>Einloggen</a>");
 	}
@@ -399,7 +400,7 @@ void write_post_url2(http_context *http, struct board *board, struct thread *thr
 	if (absolute) {
 		struct post *first_post = thread_first_post(thread);
 
-		HTTP_WRITE("/bbs/");
+		HTTP_WRITE(PREFIX "/");
 		HTTP_WRITE_DYNAMIC(board_name(board));
 		HTTP_WRITE("/");
 		HTTP_WRITE_ULONG(post_id(first_post));
@@ -490,7 +491,7 @@ void write_upload(http_context *http, struct upload *upload)
 	HTTP_WRITE("<div class='file'>"
 	             "<div class='file-header'>"
 	               "<span class='file-name'><a href='");
-	HTTP_WRITE("/bbs/uploads/"); // Todo: Don't hardcode
+	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
 	HTTP_WRITE_ESCAPED(upload_file(upload));
 	HTTP_WRITE(    "' download='");
 	HTTP_WRITE_ESCAPED(upload_original_name(upload));
@@ -533,11 +534,11 @@ void write_upload(http_context *http, struct upload *upload)
 
 	HTTP_WRITE(  "<a href='");
 
-	HTTP_WRITE("/bbs/uploads/"); // Todo: Don't hardcode
+	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
 	HTTP_WRITE_ESCAPED(upload_file(upload));
 	HTTP_WRITE(    "'>");
 	HTTP_WRITE(      "<img class='file-thumbnail-img' src='");
-	HTTP_WRITE("/bbs/uploads/"); // Todo: Don't hardcode
+	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
 	HTTP_WRITE_ESCAPED(upload_thumbnail(upload));
 	HTTP_WRITE(      "'>");
 	HTTP_WRITE(    "</a>");
@@ -749,7 +750,7 @@ void write_escaped(context *ctx, const char *unescaped)
 void write_session(http_context *http, struct session *session)
 {
 	if (!session)
-		HTTP_WRITE("Set-Cookie: session=; path=/bbs/; expires=Thu, 01 Jan 1970 00:00:00 GMT;\r\n");
+		HTTP_WRITE("Set-Cookie: session=; path=" PREFIX "/; expires=Thu, 01 Jan 1970 00:00:00 GMT;\r\n");
 }
 
 void find_bans(struct ip *ip, struct board *board, find_bans_callback callback, void *extra)

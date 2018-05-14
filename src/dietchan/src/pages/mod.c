@@ -224,7 +224,7 @@ static int  mod_page_finish (http_context *http)
 	if (!page->user && (do_ban || do_close || do_pin || do_delete_report)) {
 	    HTTP_STATUS_HTML("403 Verboten");
 	    HTTP_BODY();
-		HTTP_WRITE("<p>Netter Versuch.</p><p><small><a href='/bbs/login'>Sitzung abgelaufen?</a></small></p>");
+		HTTP_WRITE("<p>Netter Versuch.</p><p><small><a href='" PREFIX "/login'>Sitzung abgelaufen?</a></small></p>");
 		HTTP_EOF();
 		goto cleanup;
 	}

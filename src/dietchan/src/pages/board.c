@@ -36,7 +36,7 @@ static int board_page_request (http_context *http, http_method method, char *pat
 {
 	struct board_page *page = (struct board_page*)http->info;
 
-	const char *prefix = "/bbs/";
+	const char *prefix = PREFIX "/";
 
 	if (method == HTTP_POST)
 		HTTP_FAIL(METHOD_NOT_ALLOWED);
@@ -94,7 +94,7 @@ static void write_board_nav(http_context *http, struct board *board, int64 curre
 	if (page_count > 1) {
 		for (int64 i=0; i<page_count; ++i) {
 			if (i != current_page) {
-				HTTP_WRITE("<a class='page' href='/bbs/");
+				HTTP_WRITE("<a class='page' href='" PREFIX "/");
 				HTTP_WRITE_ESCAPED(board_name(board));
 				HTTP_WRITE("/");
 				if (i>0) {
@@ -178,7 +178,7 @@ static int  board_page_finish (http_context *http)
 
 	HTTP_WRITE("<hr>");
 
-	HTTP_WRITE("<form action='/bbs/mod' method='post'>");
+	HTTP_WRITE("<form action='" PREFIX "/mod' method='post'>");
 
 	struct thread* thread = board_first_thread(board);
 	int64 i=0;
@@ -219,7 +219,7 @@ static int  board_page_finish (http_context *http)
 	HTTP_WRITE("<hr>");
 
 
-	HTTP_WRITE("<input type='hidden' name='redirect' value='/bbs/");
+	HTTP_WRITE("<input type='hidden' name='redirect' value='" PREFIX "/");
 	HTTP_WRITE_ESCAPED(board_name(board));
 	HTTP_WRITE("/'>");
 

@@ -35,7 +35,7 @@ void context_flush(context *ctx);
 void context_eof(context *ctx);
 
 #ifdef BUFFER_WRITES
-void context_write_data(context *ctx, void *buf, size_t length);
+void context_write_data(context *ctx, const void *buf, size_t length);
 void context_write_file(context *ctx, int64 fd, uint64 offset, uint64 length);
 #endif
 

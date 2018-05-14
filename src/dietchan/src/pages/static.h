@@ -7,6 +7,7 @@
 #include "../http.h"
 
 struct static_page {
+	char *doc_root;
 	char *real_path;
 	time_t if_modified_since;
 };

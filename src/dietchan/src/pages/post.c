@@ -154,7 +154,7 @@ static int post_page_file_begin (http_context *http, char *name, char *filename,
 
 	size_t count = array_length(&page->upload_jobs, sizeof(struct upload_job));
 	struct upload_job *upload_job = array_allocate(&page->upload_jobs, sizeof(struct upload_job), count);
-	upload_job_init(upload_job, "/srv/http/bbs/uploads/");
+	upload_job_init(upload_job, DOC_ROOT "/uploads/");
 	upload_job->original_name = strdup(filename);
 	upload_job->info = http;
 	upload_job->mime = post_page_upload_job_mime;
@@ -405,7 +405,7 @@ static int post_page_finish (http_context *http)
 	                               board, BAN_TARGET_POST, is_banned);
 
 	if (banned) {
-		HTTP_REDIRECT("302 Found", "/bbs/banned");
+		HTTP_REDIRECT("302 Found", PREFIX "/banned");
 		return ERROR;
 	}
 
@@ -616,11 +616,11 @@ static int post_page_finish (http_context *http)
 		strcat(thumb_filename, upload_job->thumb_ext);
 
 		char file_path[256];
-		strcpy(file_path, "/srv/http/bbs/uploads/");
+		strcpy(file_path, DOC_ROOT "/uploads/");
 		strcat(file_path, filename);
 
 		char thumb_path[256];
-		strcpy(thumb_path, "/srv/http/bbs/uploads/");
+		strcpy(thumb_path, DOC_ROOT "/uploads/");
 		strcat(thumb_path, thumb_filename);
 
 		// Move temporary files to their final locations

@@ -37,7 +37,7 @@ static int thread_page_request (http_context *http, http_method method, char *pa
 {
 	struct thread_page *page = (struct thread_page*)http->info;
 
-	const char *prefix = "/bbs/";
+	const char *prefix = PREFIX "/";
 
 	if (method == HTTP_POST)
 		HTTP_FAIL(METHOD_NOT_ALLOWED);
@@ -94,7 +94,7 @@ static void write_thread_nav(http_context *http, struct thread *thread)
 	struct board *board = thread_board(thread);
 
 	HTTP_WRITE("<div class='thread-nav'>");
-	HTTP_WRITE("<a href='/bbs/");
+	HTTP_WRITE("<a href='" PREFIX "/");
 	HTTP_WRITE_ESCAPED(board_name(board));
 	HTTP_WRITE("/'>[Zurück]</a>");
 	HTTP_WRITE("</div>");
@@ -162,7 +162,7 @@ static int thread_page_finish (http_context *http)
 
 	struct post *post = thread_first_post(thread);
 
-	HTTP_WRITE("<form action='/bbs/mod' method='post'>"
+	HTTP_WRITE("<form action='" PREFIX "/mod' method='post'>"
 	           "<div class='thread'>");
 	write_post(http, post, 0, post_render_flags);
 	HTTP_WRITE(    "<div class='replies'>");
@@ -179,7 +179,7 @@ static int thread_page_finish (http_context *http)
 
 	HTTP_WRITE("<hr>");
 
-	HTTP_WRITE("<input type='hidden' name='redirect' value='/bbs/");
+	HTTP_WRITE("<input type='hidden' name='redirect' value='" PREFIX "/");
 	HTTP_WRITE_ESCAPED(board_name(board));
 	HTTP_WRITE("/");
 	HTTP_WRITE_ULONG(post_id(thread_first_post(thread)));
