@@ -80,14 +80,21 @@ static void edit_board_page_print_form(http_context *http)
 	           "<input type='hidden' name='board_id' value='");
 	HTTP_WRITE_LONG(page->board_id);
 	HTTP_WRITE("'>"
-	           "<p><label for='board_name'>Name (URL): </label>"
-	           "<input type='text' name='board_name' value='");
+	           "<p><table>"
+	           "<tr>"
+	             "<th><label for='board_name'>Name (URL): </label></th>"
+	             "<td><input type='text' name='board_name' value='");
 	HTTP_WRITE_ESCAPED(page->board_name);
-	HTTP_WRITE("' required></p>"
-	           "<p><label for='board_title'>Titel: </label>"
-	           "<input type='text' name='board_title' value='");
+	HTTP_WRITE(        "' required></td>"
+	           "</tr><tr>"
+	             "<th><label for='board_title'>Titel: </label></th>"
+	             "<td><input type='text' name='board_title' value='");
 	HTTP_WRITE_ESCAPED(page->board_title);
-	HTTP_WRITE("'></p><input type='submit' value='Übernehmen'></form>");
+	HTTP_WRITE(        "'></td>"
+	             "</tr>"
+	           "</table></p>"
+	           "<p><input type='submit' value='Übernehmen'></p>"
+	           "</form>");
 }
 
 static void edit_board_page_print_confirmation(http_context *http)
@@ -100,7 +107,7 @@ static void edit_board_page_print_confirmation(http_context *http)
 	HTTP_WRITE("'><p><label><input type='checkbox' name='confirmed' value='1'>Brett /");
 	HTTP_WRITE_ESCAPED(board_name(board));
 	HTTP_WRITE("/ wirklich löschen.</label></p>"
-	           "<input type='submit' value='Löschen'></form>");
+	           "<p><input type='submit' value='Löschen'></p></form>");
 }
 
 static int edit_board_page_finish (http_context *http)

@@ -110,16 +110,10 @@ void write_dashboard_header(http_context *http, uint64 user_id)
 	                   "vertical-align: top;"
                      "}"
                      ".file-header {"
-                       "font-size: small;"
+                       "display: none;"
                      "}"
                      ".file-subheader {"
-                       "font-size: x-small;"
-                     "}"
-                     ".file-subheader > span {"
                        "display: none;"
-	                 "}"
-	                 ".file-subheader > .file_type {"
-	                   "display: inline;"
 	                 "}"
                      ".file-thumbnail-img {"
                        "vertical-align: bottom;"
@@ -128,7 +122,7 @@ void write_dashboard_header(http_context *http, uint64 user_id)
                      "}"
                      ".post {"
                        "max-width: 600px;"
-                       "max-height: 100px;"
+                       "max-height: 80px;"
                        "overflow-y: auto;"
                      "}"
                      ".post-header{"
@@ -136,6 +130,19 @@ void write_dashboard_header(http_context *http, uint64 user_id)
                      "}"
                      ".text {"
                        "overflow-wrap: break-word;"
+                     "}"
+                     "span.quote {"
+                       "color: #090;"
+                     "}"
+                     "span.spoiler {"
+                       "color: #000;"
+                       "background: #000;"
+                     "}"
+                     "span.spoiler:hover {"
+                       "color: #fff;"
+                     "}"
+                     ".banned {"
+                       "color: #f00;"
                      "}"
                      "td input[type=checkbox] {"
                        "margin: 0;"
@@ -257,7 +264,7 @@ static int  dashboard_page_finish (http_context *http)
 		HTTP_WRITE("<h2>Meldungen</h2>");
 
 		int any_report=0;
-		for (struct report *report = master_first_report(master); report; report=report_next_report(report)) {
+		for (struct report *report = master_last_report(master); report; report=report_prev_report(report)) {
 			struct board *board = find_board_by_id(report_board_id(report));
 			if (!is_mod_for_board(page->user, board))
 				continue;
@@ -322,7 +329,7 @@ static int  dashboard_page_finish (http_context *http)
 	if (user_type(page->user) == USER_ADMIN || user_type(page->user) == USER_MOD) {
 		HTTP_WRITE("<h2>Banne</h2>");
 		int any_ban = 0;
-		for (struct ban *ban = master_first_ban(master); ban; ban=ban_next_ban(ban)) {
+		for (struct ban *ban = master_last_ban(master); ban; ban=ban_prev_ban(ban)) {
 			if (!can_see_ban(page->user, ban))
 				continue;
 

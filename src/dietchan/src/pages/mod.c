@@ -114,6 +114,52 @@ static int mod_page_cookie (http_context *http, char *key, char *val)
 	return 0;
 }
 
+static void mod_write_header(http_context *http)
+{
+	HTTP_WRITE("<!DOCTYPE html>"
+	           "<html>"
+	             "<head>"
+	               "<style>"
+	                 "th {"
+	                   "text-align:left;"
+	                 "}"
+	                 "th, td {"
+	                   "padding-left: 8px;"
+	                   "padding-right: 8px;"
+	                   "vertical-align: baseline;"
+	                 "}"
+	                 "table {"
+	                   "border-spacing: 0;"
+	                   "margin-left: -6px;"
+	                   "margin-right: -6px;"
+	                 "}"
+	                 "label {"
+	                   "font-weight: bold;"
+	                 "}"
+	                 "tr input[type=text],"
+	                 "tr input[type=password],"
+	                 "tr textarea {"
+	                   "box-sizing: border-box;"
+	                   "width: 100%;"
+	                   "vertical-align: baseline;"
+	                 "}"
+                     "tr input[type=checkbox],"
+                     "tr input[type=radio] {"
+                       "position: relative;"
+                       "top: 2px;"
+                     "}"
+                     "p.error {"
+                       "color: #f00;"
+                     "}"
+	               "</style>"
+	             "</head>"
+	             "<body>");
+}
+
+static void mod_write_footer(http_context *http)
+{
+	HTTP_WRITE("</body></html>");
+}
 static void add_default_range_for_ip(array *ranges, struct ip *ip)
 {
 	// Create default range ban for IP
@@ -240,6 +286,7 @@ static int  mod_page_finish (http_context *http)
 	HTTP_STATUS_HTML("200 Ok");
 	HTTP_WRITE_SESSION();
 	HTTP_BODY();
+	mod_write_header(http);
 	HTTP_WRITE("<form method='post'>"
 	           "<input type='hidden' name='submitted' value='1'>"
 	           "<input type='hidden' name='action' value='");
@@ -331,11 +378,11 @@ static int  mod_page_finish (http_context *http)
 
 	// Parse ban duration
 	int64 duration = 0;
-	if (do_ban) {
+	if (do_ban && page->submitted) {
 		// FIXME: Right now parsed as seconds.
 		// TODO: Allow more complex format like (1d 12h)
 
-		if ((page->submitted && str_equal(page->duration, "")) ||
+		if (str_equal(page->duration, "") ||
 		    page->duration[scan_long(page->duration, &duration)] != '\0') {
 			HTTP_WRITE("<p class='error'>Ungültige Bann-Dauer</p>");
 			do_it = 0;
@@ -345,7 +392,7 @@ static int  mod_page_finish (http_context *http)
 	// Ban form validation
 	int64 post_count = array_length(&page->posts, sizeof(uint64));
 	ssize_t range_count = array_length(&ranges, sizeof(struct ip_range));
-	if (do_ban) {
+	if (do_ban && page->submitted) {
 		if (range_count <= 0) {
 			HTTP_WRITE("<p class='error'>Es muss mindestens eine IP-Adresse eingegeben werden.</p>");
 			do_it = 0;
@@ -703,6 +750,8 @@ static int  mod_page_finish (http_context *http)
 		if (do_ban && can_see_ban(page->user, ban)) {
 			if (do_delete)
 				HTTP_WRITE("<h1>Bannen &amp; Löschen</h1>");
+			else if (ban)
+				HTTP_WRITE("<h1>Bann bearbeiten</h1>");
 			else
 				HTTP_WRITE("<h1>Bannen</h1>");
 
@@ -712,38 +761,45 @@ static int  mod_page_finish (http_context *http)
 				HTTP_WRITE(" Post(s)</p>");
 			}
 
+			HTTP_WRITE("<p><table>");
+
 			if (ban) {
-				HTTP_WRITE("<p><input type='checkbox' name='enabled' id='enabled' value='1'");
+				HTTP_WRITE("<tr>"
+				             "<th><label for='enabled'>Aktiv</label></th>"
+				             "<td colspan='3'><input type='checkbox' name='enabled' id='enabled' value='1'");
 				if (ban_enabled(ban))
-					HTTP_WRITE(" checked");
-				HTTP_WRITE(">"
-				           "<label for='enabled'>Aktiv</label></p>");
+					HTTP_WRITE(    " checked");
+				HTTP_WRITE(      ">"
+				             "</td>"
+				           "</tr>");
 			}
 			if (ban || !array_bytes(&page->posts)) {
-				HTTP_WRITE("<p><label>Gilt für</label><br>"
-				           "<select name='ban_target'>"
-				             "<option value='posts'>Posts</option>"
-				             "<option value='reports'");
+				HTTP_WRITE("<tr>"
+				             "<th><label>Gilt für</label></th>"
+				             "<td colspan='3'><select name='ban_target'>"
+				                   "<option value='posts'>Posts</option>"
+				                   "<option value='reports'");
 				if (case_equals(page->ban_target, "reports"))
-					HTTP_WRITE(" selected");
-				HTTP_WRITE(  ">Reports</option>"
-				           "</select></p>"
-				           "<p><label>Bann-Art</label><br>"
-				           "<select name='ban_type'>"
-				             "<option value='blacklist'>Bann</option>"
-				             "<option value='captcha'");
+					HTTP_WRITE(    " selected");
+				HTTP_WRITE(        ">Reports</option>"
+				                 "</select>"
+				             "</td>"
+				           "</tr><tr>"
+				             "<th><label>Bann-Art</label></th>"
+				             "<td colspan='3'><select name='ban_type'>"
+				                   "<option value='blacklist'>Bann</option>"
+				                   "<option value='captcha'");
 				if (case_equals(page->ban_type, "captcha"))
-					HTTP_WRITE(" selected");
-				HTTP_WRITE(  ">Captcha</option>"
-				             "<option value='captcha_once'");
-				if (case_equals(page->ban_type, "captcha_once"))
-					HTTP_WRITE(" selected");
-				HTTP_WRITE(  ">Captcha (einmalig)</option>"
-				           "</select></p>");
+					HTTP_WRITE(    " selected");
+				HTTP_WRITE(        ">Captcha</option>"
+				                 "</select>"
+				             "</td>"
+				           "</tr>");
 			}
 
-			HTTP_WRITE("<p><label for='ip_ranges'>IP-Range(s)</label><br>"
-			           "<textarea name='ip_ranges'>");
+			HTTP_WRITE(    "<tr>"
+			                 "<th><label for='ip_ranges'>IP-Range(s)</label></th>"
+			                 "<td colspan='3'><textarea name='ip_ranges'>");
 			if (collect_ips) {
 				// Print automatically collected IPs if no IPs were submitted
 				int count = array_length(&ranges, sizeof(struct ip_range));
@@ -758,39 +814,48 @@ static int  mod_page_finish (http_context *http)
 				// Otherwise echo user submitted ips
 				HTTP_WRITE_ESCAPED(page->ip_ranges);
 			}
-			HTTP_WRITE("</textarea></p>");
-
-			HTTP_WRITE("<p><label>Bretter</label><br>"
-			           "<input type='radio' name='global' value='1' id='global-1'");
+			HTTP_WRITE(      "</textarea></td>"
+			               "</tr>"
+			               "<tr>"
+			                 "<th rowspan='2'><label>Bretter</label></th>"
+			                 "<td colspan='3'><input type='radio' name='global' value='1' id='global-1'");
 			if (page->global)
-				HTTP_WRITE(" checked");
-			HTTP_WRITE("><label for='global-1'>Global</label><br>"
-			           "<input type='radio' name='global' value='0' id='global-0'");
+				HTTP_WRITE(  " checked");
+			HTTP_WRITE(      "><label for='global-1'>Global</label></td>"
+			               "</tr><tr>"
+			                 "<td colspan='2'><input type='radio' name='global' value='0' id='global-0'");
 			if (!page->global)
-				HTTP_WRITE(" checked");
-			HTTP_WRITE("><label for='global-0'>Folgende:</label> "
-			           "<input type='text' name='boards' value='");
+				HTTP_WRITE(  " checked");
+			HTTP_WRITE(      "><label for='global-0'>Folgende:</label></td>"
+			                 "<td><input type='text' name='boards' value='");
 			for (int i=0; i<boards_count; ++i) {
 				struct board **board = array_get(&boards, sizeof(struct board*), i);
 				HTTP_WRITE_DYNAMIC(board_name(*board));
 				HTTP_WRITE(" ");
 			}
-			HTTP_WRITE("'></p>"
-			           "<p><label for='duration'>Dauer</label><br>"
-			           "<input type='text' name='duration' value='");
+			HTTP_WRITE(      "'></td>"
+			               "</tr><tr>"
+			                 "<th><label for='duration'>Dauer</label></th>"
+			                 "<td colspan='3'><input type='text' name='duration' value='");
 			HTTP_WRITE_ESCAPED(page->duration);
-			HTTP_WRITE("'></p>");
-			HTTP_WRITE("<p><label for='reason'>Grund</label><br>"
-			           "<textarea name='reason'>");
+			HTTP_WRITE(      "'></td>");
+			HTTP_WRITE(    "</tr><tr>"
+			                 "<th><label for='reason'>Grund</label></th>"
+			                 "<td colspan='3'><textarea name='reason'>");
 			HTTP_WRITE_ESCAPED(page->reason);
-			HTTP_WRITE("</textarea></p>");
+			HTTP_WRITE(          "</textarea></td>"
+			               "</tr>");
 			if (any_valid_post) {
-				HTTP_WRITE("<p><input type='checkbox' name='attach_ban_message' id='attach_ban_message' value='1' checked> "
-				           "<input type='text' name='ban_message' value='");
+				HTTP_WRITE("<tr>"
+				             "<th></th>"
+				             "<td width='1'><input type='checkbox' name='attach_ban_message' id='attach_ban_message' value='1' checked></td>"
+				             "<td colspan='2'><input type='text' name='ban_message' value='");
 				HTTP_WRITE_ESCAPED(page->ban_message);
-				HTTP_WRITE("'></p>");
+				HTTP_WRITE( "'></td>");
 			}
-			HTTP_WRITE("<p><input type='submit' value='Übernehmen'></p>");
+			HTTP_WRITE(  "</tr>"
+			           "</table></p>"
+			           "<p><input type='submit' value='Übernehmen'></p>");
 		}
 		// "Delete ban" form
 		if (do_delete_ban) {
@@ -832,9 +897,10 @@ static int  mod_page_finish (http_context *http)
 
 end:
 	HTTP_WRITE("</form>");
+	mod_write_footer(http);
 
 	if (do_it && page->redirect) {
-		HTTP_WRITE("<meta http-equiv='refresh' content='0; ");
+		HTTP_WRITE("<meta http-equiv='refresh' content='1; ");
 		HTTP_WRITE_ESCAPED(page->redirect);
 		HTTP_WRITE("'>");
 	}

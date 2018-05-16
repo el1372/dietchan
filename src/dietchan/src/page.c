@@ -281,6 +281,12 @@ void write_page_css(http_context *http)
                ".thread{"
                  "clear:both;"
                "}"
+               ".thread-stats {"
+                 "margin-left: 2em;"
+                 "margin-top: 1em;"
+                 "margin-bottom: 0.75em;"
+                 "opacity: 0.5;"
+               "}"
                ".post-header {"
                  "margin-top: .25em;"
                  "margin-bottom: .5em;"
@@ -357,7 +363,7 @@ void write_page_css(http_context *http)
                  "max-height: 200px;"
                "}"
                "span.quote {"
-                 "color: #00F;"
+                 "color: #090;"
                "}"
                "span.spoiler {"
                  "color: #000;"
@@ -366,6 +372,11 @@ void write_page_css(http_context *http)
                "span.spoiler:hover {"
                  "color: #fff;"
                "}"
+               ".banned {"
+                 "color: #f00;"
+                 "font-weight: bold;"
+                 "margin-top: 1em;"
+               "}"
                ".mod-bar {"
                  "text-align: right;"
                "}"
@@ -373,7 +384,7 @@ void write_page_css(http_context *http)
                  "clear: both;"
                "}"
                "span.ip {"
-                 "color: #00f;"
+                 "color: #35f;"
                "}"
                ".top-bar-right {"
                  "float: right;"
@@ -659,6 +670,11 @@ void write_post(http_context *http, struct post *post, int absolute_url, int fla
 	//HTTP_WRITE_ESCAPED(post_text(post));
 	write_bbcode(http, post_text(post), absolute_url?0:thread);
 	HTTP_WRITE(          "</div>");
+	if (post_banned(post) && post_ban_message(post)) {
+		HTTP_WRITE(      "<div class='banned'>(");
+		HTTP_WRITE_ESCAPED(post_ban_message(post));
+		HTTP_WRITE(      ")</div>");
+	}
 	HTTP_WRITE(        "</div>");
 	HTTP_WRITE(      "</li>"
 	               "</ul>");

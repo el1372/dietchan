@@ -190,6 +190,17 @@ static int  board_page_finish (http_context *http)
 			struct post* post = thread_first_post(thread);
 			write_post(http, post, 1, post_render_flags);
 
+			if (thread_post_count(thread) > PREVIEW_REPLIES + 1) {
+				HTTP_WRITE("<div class='thread-stats'>");
+				uint64 n = thread_post_count(thread) - PREVIEW_REPLIES-1;
+				HTTP_WRITE_ULONG(n);
+				if (n > 1)
+					HTTP_WRITE(" Antworten");
+				else
+					HTTP_WRITE(" Antwort");
+				HTTP_WRITE(" nicht angezeigt.</div>");
+			}
+
 			struct post *reply = thread_last_post(thread);
 			if (reply != post && PREVIEW_REPLIES>0) {
 				for (int i=1; i<PREVIEW_REPLIES; ++i) {

@@ -197,8 +197,6 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 		HTTP_WRITE_ESCAPED(buf);
 		HTTP_WRITE(" files.</p>");
 
-		// FIXME: Free upload_jobs
-
 		HTTP_EOF();
 
 		upload_job_abort(page->current_upload_job);
@@ -220,8 +218,6 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 		HTTP_WRITE(" is larger than the allowed maximum of ");
 		HTTP_WRITE_ESCAPED(buf);
 		HTTP_WRITE("B.");
-
-		// FIXME: Free upload_jobs
 
 		HTTP_EOF();
 
@@ -409,53 +405,6 @@ static int post_page_finish (http_context *http)
 		return ERROR;
 	}
 
-	// Check if user is flood-limited
-
-	int64 flood = any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
-	                               board, BAN_TARGET_POST, is_flood_limited);
-
-	if (flood) {
-		uint64 now = time(0);
-		HTTP_STATUS_HTML("403 Verboten");
-		HTTP_BODY();
-		HTTP_WRITE("<p>Flood protection: Du kannst den nächsten Beitrag erst in ");
-		HTTP_WRITE_ULONG(flood - now);
-		HTTP_WRITE(" Sekunden erstellen.</p>");
-		HTTP_EOF();
-		return ERROR;
-	}
-
-	// Check captcha
-	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
-	                    board, BAN_TARGET_POST, is_captcha_required)) {
-		if (!page->captcha || str_equal(page->captcha, "")) {
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Du hast das Captcha nicht eingegeben.</p>");
-			HTTP_EOF();
-			return ERROR;
-		}
-		struct captcha *captcha = find_captcha_by_id(page->captcha_id);
-		if (!captcha || captcha_token(captcha) != page->captcha_token) {
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Captcha abgelaufen :(</p>");
-			HTTP_EOF();
-			return ERROR;
-		}
-		int valid = case_equals(captcha_solution(captcha), page->captcha);
-		if (valid)
-			replace_captcha(captcha);
-		else {
-			invalidate_captcha(captcha);
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Dein eingegebenes Captcha stimmt leider nicht :(</p>");
-			HTTP_EOF();
-			return ERROR;
-		}
-	}
-
 	// New threads must contain text.
 	// Posts without text are okay, as long as they contain at least one file.
 	if ((!page->text || page->text[0] == '\0') &&
@@ -512,6 +461,54 @@ static int post_page_finish (http_context *http)
 		return ERROR;
 	}
 
+	// Check if user is flood-limited
+
+	int64 flood = any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
+	                               board, BAN_TARGET_POST, is_flood_limited);
+
+	if (flood) {
+		uint64 now = time(0);
+		HTTP_STATUS_HTML("403 Verboten");
+		HTTP_BODY();
+		HTTP_WRITE("<p>Flood protection: Du kannst den nächsten Beitrag erst in ");
+		HTTP_WRITE_ULONG(flood - now);
+		HTTP_WRITE(" Sekunden erstellen.</p>");
+		HTTP_EOF();
+		return ERROR;
+	}
+
+	// Check captcha
+	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
+	                    board, BAN_TARGET_POST, is_captcha_required)) {
+		if (!page->captcha || str_equal(page->captcha, "")) {
+			HTTP_STATUS_HTML("403 Verboten");
+			HTTP_BODY();
+			HTTP_WRITE("<p>Du hast das Captcha nicht eingegeben.</p>");
+			HTTP_EOF();
+			return ERROR;
+		}
+		struct captcha *captcha = find_captcha_by_id(page->captcha_id);
+		if (!captcha || captcha_token(captcha) != page->captcha_token) {
+			HTTP_STATUS_HTML("403 Verboten");
+			HTTP_BODY();
+			HTTP_WRITE("<p>Captcha abgelaufen :(</p>");
+			HTTP_EOF();
+			return ERROR;
+		}
+		int valid = case_equals(captcha_solution(captcha), page->captcha);
+		if (valid)
+			replace_captcha(captcha);
+		else {
+			invalidate_captcha(captcha);
+			HTTP_STATUS_HTML("403 Verboten");
+			HTTP_BODY();
+			HTTP_WRITE("<p>Dein eingegebenes Captcha stimmt leider nicht :(</p>");
+			HTTP_EOF();
+			return ERROR;
+		}
+	}
+
+
 	begin_transaction();
 
 	if (page->thread == -1) {
@@ -567,6 +564,9 @@ static int post_page_finish (http_context *http)
 	const char *password = "";
 	if (page->password[0] != '\0')
 		password = crypt_password(page->password);
+
+	// We don't support tripcodes at the moment, strip everything after # for security.
+	page->username[str_chr(page->username, '#')] = '\0';
 
 	post_set_thread(post, thread);
 	post_set_timestamp(post, timestamp);

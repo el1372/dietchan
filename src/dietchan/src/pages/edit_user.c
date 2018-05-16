@@ -111,25 +111,29 @@ static void edit_user_page_print_form(http_context *http)
 	           "<input type='hidden' name='user_id' value='");
 	HTTP_WRITE_LONG(page->user_id);
 	HTTP_WRITE("'>"
-	           "<p><label for='user_name'>Name: </label>"
-	           "<input type='text' name='user_name' value='");
+	           "<p><table>"
+	             "<tr>"
+	               "<th><label for='user_name'>Name: </label></th>"
+	               "<td><input type='text' name='user_name' value='");
 	HTTP_WRITE_ESCAPED(page->user_name);
-	HTTP_WRITE("' required");
+	HTTP_WRITE(         "' required");
 	if (!can_edit_everything(page))
-		HTTP_WRITE(" disabled");
-	HTTP_WRITE("></p>"
-	           "<p><label for='user_type'>Rolle: </label>"
-	           "<select name='user_type' required");
+		HTTP_WRITE(     " disabled");
+	HTTP_WRITE(         "></td>"
+	             "</tr><tr>"
+	               "<th><label for='user_type'>Rolle: </label></th>"
+	               "<td><select name='user_type' required");
 	if (!can_edit_everything(page))
-		HTTP_WRITE(" disabled");
-	HTTP_WRITE(">"
-	             "<option value='mod'>Mod</option>"
-	             "<option value='admin'");
+		HTTP_WRITE(    " disabled");
+	HTTP_WRITE(        ">"
+	                     "<option value='mod'>Mod</option>"
+	                     "<option value='admin'");
 	if (page->user_type == USER_ADMIN) HTTP_WRITE(" selected");
-	HTTP_WRITE(  ">Admin</option>"
-	           "</select></p>"
-	           "<p><label for='boards'>Bretter: </label>"
-	           "<input type='text' name='boards' value='");
+	HTTP_WRITE(          ">Admin</option>"
+	                   "</select></td>"
+	             "</tr><tr>"
+	               "<th><label for='boards'>Bretter: </label></th>"
+	               "<td><input type='text' name='boards' value='");
 	if (page->boards) {
 		HTTP_WRITE_ESCAPED(page->boards);
 	} else {
@@ -147,28 +151,34 @@ static void edit_user_page_print_form(http_context *http)
 			}
 		}
 	}
-	HTTP_WRITE("'");
+	HTTP_WRITE(    "'");
 	if (!can_edit_everything(page))
 		HTTP_WRITE(" disabled");
-	HTTP_WRITE("></p>"
-	           "<p><label for='user_email'>E-Mail: </label>"
-	           "<input type='text' name='user_email' value='");
+	HTTP_WRITE(    "></td>"
+	             "</tr><tr>"
+	               "<th><label for='user_email'>E-Mail: </label></th>"
+	               "<td><input type='text' name='user_email' value='");
 	HTTP_WRITE_ESCAPED(page->user_email);
-	HTTP_WRITE("' optional></p>"
-	           "<p><label for='user_password'>Passwort: </label>"
-	           "<input type='password' name='user_password' value='");
+	HTTP_WRITE(    "' optional></td>"
+	             "</tr></tr>"
+	               "<th><label for='user_password'>Passwort: </label></th>"
+	               "<td><input type='password' name='user_password' value='");
 	HTTP_WRITE_ESCAPED(page->user_password);
-	HTTP_WRITE("'");
+	HTTP_WRITE(        "'");
 	if (case_equals(page->action, "add"))
-		HTTP_WRITE(" required");
-	HTTP_WRITE("></p>"
-	           "<p><label for='user_password_confirm'>Bestätigen: </label>"
-	           "<input type='password' name='user_password_confirm' value='");
+		HTTP_WRITE(    " required");
+	HTTP_WRITE(        "></td>"
+	             "</tr><tr>"
+	               "<th><label for='user_password_confirm'>Bestätigen: </label></th>"
+	               "<td><input type='password' name='user_password_confirm' value='");
 	HTTP_WRITE_ESCAPED(page->user_password_confirm);
-	HTTP_WRITE("'");
+	HTTP_WRITE(        "'");
 	if (case_equals(page->action, "add"))
-		HTTP_WRITE(" required");
-	HTTP_WRITE("></p><input type='submit' value='Übernehmen'></form>");
+		HTTP_WRITE(    " required");
+	HTTP_WRITE(        "></td>"
+	             "</tr>"
+	           "</table></p>"
+	           "<p><input type='submit' value='Übernehmen'></p></form>");
 }
 
 static void edit_user_page_print_confirmation(http_context *http)
@@ -181,7 +191,7 @@ static void edit_user_page_print_confirmation(http_context *http)
 	HTTP_WRITE("'><p><label><input type='checkbox' name='confirmed' value='1'>Benutzer '");
 	HTTP_WRITE_ESCAPED(user_name(user));
 	HTTP_WRITE("' wirklich löschen.</label></p>"
-	           "<input type='submit' value='Löschen'></form>");
+	           "<p><input type='submit' value='Löschen'></p></form>");
 }
 
 static int edit_user_page_finish (http_context *http)

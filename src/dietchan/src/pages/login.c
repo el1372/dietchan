@@ -81,16 +81,21 @@ static int  login_page_finish (http_context *http)
 		HTTP_WRITE("<div class='top-bar'>");
 		write_board_bar(http);
 		HTTP_WRITE("</div>");
-		HTTP_WRITE("<p><form action='" PREFIX "/login' method='post'>"
+		HTTP_WRITE("<form action='" PREFIX "/login' method='post'>"
 		             "<input type='hidden' name='redirect' value='");
 		HTTP_WRITE_ESCAPED(page->redirect);
 		HTTP_WRITE(  "'>"
-		             "<label for='username'>Name</label>"
-		             "<input type='text' name='username'><br>"
-		             "<label for='password'>Password</label>"
-		             "<input type='password' name='password'><br>"
-		             "<input type='submit' value='Einloggen'>"
-		           "</form></p>");
+		           "<p><table>"
+		             "<tr>"
+		               "<th><label for='username'>Name</label></th>"
+		               "<td><input type='text' name='username'></td>"
+		             "</tr><tr>"
+		               "<th><label for='password'>Passwort</label></th>"
+		               "<td><input type='password' name='password'></td>"
+		             "</tr>"
+		           "</table></p>"
+		           "<p><input type='submit' value='Einloggen'></p>"
+		           "</form>");
 		write_bottom_bar(http);
 		write_page_footer(http);
 		HTTP_EOF();
