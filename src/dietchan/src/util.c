@@ -161,15 +161,11 @@ const char *crypt_password(const char *plain_pw)
 	                                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	                                  "0123456789";
 	char salt[16];
-	// Sadly, dietlibc 0.33 doesn't support SHA256 yet (but will in version 0.34).
-	// It also doesn't throw an error for hashing methods it doesn't recognize, but returns
-	// garbage that can't be read in the future, in violation of the standard.
-	// In addition, it only uses the first 8 characters of the salt, unlike glibc, even for
-	// advanced hashing methods.
-	// Sigh...
-	//strcpy(salt, "$5$"); // SHA256
-	strcpy(salt, "$1$"); // MD5
-	generate_random_string(&salt[strlen(salt)], 8, salt_charset);
+	// Note: dietlibc <= 0.33 doesn't support sha256.
+	strcpy(salt, "$5$"); // SHA256
+	//strcpy(salt, "$1$"); // MD5
+	generate_random_string(&salt[strlen(salt)], sizeof(salt)-strlen(salt)-1, salt_charset);
+	salt[sizeof(salt)-1] = '\0';
 
 	return crypt(plain_pw, salt);
 }
