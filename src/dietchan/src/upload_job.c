@@ -12,6 +12,7 @@
 #include <libowfat/scan.h>
 
 #include "util.h"
+#include "mime_types.h"
 
 static void start_mime_check_job(struct upload_job *upload_job);
 static void finished_mime_check_job(struct upload_job *upload_job);
@@ -27,7 +28,6 @@ static void upload_job_error(struct upload_job *upload_job, int status, char *me
 static void extract_meta_command(const char *file, const char *mime_type, char *command);
 static void thumbnail_command(const char *file, const char *mime_type, const char *thumbnail_base,
                               const char **ext, char *command);
-static const char* get_extension_for_mime(const char *mime_type);
 
 void upload_job_init(struct upload_job *upload_job, char *upload_dir)
 {
@@ -178,7 +178,7 @@ static void finished_mime_check_job(struct upload_job *upload_job)
 	upload_job->mime_type = strdup(array_start(&upload_job->job_output));
 	remove_trailing_space(upload_job->mime_type);
 
-	upload_job->file_ext = get_extension_for_mime(upload_job->mime_type);
+	upload_job->file_ext = get_extension_for_mime_type(upload_job->mime_type);
 
 	if (upload_job->mime)
 		upload_job->mime(upload_job, upload_job->mime_type);
@@ -359,17 +359,4 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 		                "-profile /usr/share/color/icc/colord/sRGB.icc -strip ");
 		strcat(command, thumb_file);
 	}
-}
-
-// --- Help helper ---
-
-static const char* get_extension_for_mime(const char *mime_type)
-{
-	if (case_equals(mime_type, "image/jpeg")) return ".jpg";
-	if (case_equals(mime_type, "image/jpg"))  return ".jpg";
-	if (case_equals(mime_type, "image/png"))  return ".png";
-	if (case_equals(mime_type, "image/gif"))  return ".gif";
-	if (case_equals(mime_type, "application/pdf"))  return ".pdf";
-	if (case_equals(mime_type, "video/webm")) return ".webm";
-	return "";
 }

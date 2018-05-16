@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 
 #include <libowfat/str.h>
@@ -15,6 +16,7 @@
 #include <libowfat/open.h>
 
 #include "../page.h"
+#include "../mime_types.h"
 
 static int static_page_request (http_context *http, http_method method, char *path, char *query);
 static int static_page_header (http_context *http, char *key, char *val);
@@ -100,11 +102,17 @@ static int static_page_finish (http_context *http)
 	if (fd == -1)
 		HTTP_FAIL(FORBIDDEN);
 
+	const char *ext = strrchr(page->real_path, '.');
+	const char *mime = get_mime_type_for_extension(ext);
+
 	HTTP_STATUS("200 OK");
 	HTTP_WRITE("Last-Modified: ");
 	HTTP_WRITE_HTTP_DATE(st.st_mtime);
 	HTTP_WRITE("\r\n"
 	           "Cache-Control: private, max-age=31536000\r\n" // 1 year
+	           "Content-Type: ");
+	HTTP_WRITE_DYNAMIC(mime);
+	HTTP_WRITE("\r\n"
 	           "Content-Length: ");
 	HTTP_WRITE_ULONG(st.st_size);
 	HTTP_WRITE("\r\n");

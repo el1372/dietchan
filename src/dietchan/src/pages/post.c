@@ -32,6 +32,7 @@
 
 
 #include "../page.h"
+#include "../mime_types.h"
 
 
 static int  post_page_header (http_context *http, char *key, char *val);
@@ -267,12 +268,7 @@ static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_
 	http_context *http = (http_context*)upload_job->info;
 	struct post_page *page = (struct post_page*)http->info;
 
-	if (!case_equals(mime_type, "image/jpeg") &&
-	    !case_equals(mime_type, "image/jpg") &&
-	    !case_equals(mime_type, "image/png") &&
-	    !case_equals(mime_type, "image/gif") &&
-	    !case_equals(mime_type, "application/pdf") &&
-	    !case_equals(mime_type, "video/webm")) {
+	if (!is_mime_allowed(mime_type)) {
 	    HTTP_STATUS_HTML("415 Unsupported media type");
 		HTTP_WRITE_SESSION();
 		HTTP_BODY();
@@ -280,6 +276,25 @@ static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_
 		           "<p>Unsupported mime type: ");
 		HTTP_WRITE_ESCAPED(mime_type);
 		HTTP_WRITE("<br>");
+		HTTP_WRITE_ESCAPED(upload_job->original_name);
+		HTTP_WRITE("</p>");
+
+		HTTP_EOF();
+		upload_job_abort(upload_job);
+		page->aborted = 1;
+	}
+
+	const char *original_ext = strrchr(upload_job->original_name, '.');
+	if (!is_valid_extension(mime_type, original_ext)) {
+	    HTTP_STATUS_HTML("415 Unsupported media type");
+		HTTP_WRITE_SESSION();
+		HTTP_BODY();
+		HTTP_WRITE("<h1>Error</h1>"
+		           "<p>Invalid file extension '");
+		HTTP_WRITE_ESCAPED(original_ext?original_ext:"");
+		HTTP_WRITE("' for mime type '");
+		HTTP_WRITE_ESCAPED(mime_type);
+		HTTP_WRITE("'<br>");
 		HTTP_WRITE_ESCAPED(upload_job->original_name);
 		HTTP_WRITE("</p>");
 
