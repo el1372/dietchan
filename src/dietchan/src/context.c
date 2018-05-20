@@ -11,11 +11,7 @@ void context_init(context *ctx, int fd)
 	byte_zero(ctx, sizeof(context));
 	ctx->refcount = 1;
 	ctx->fd = fd;
-	#ifdef BUFFER_WRITES
 	ctx->batch = iob_new(10);
-	#else
-	ctx->batch = iob_new(1000);
-	#endif
 }
 
 void context_addref(context *ctx)
@@ -30,10 +26,8 @@ void context_unref(context *ctx)
 		if (ctx->finalize)
 			ctx->finalize(ctx);
 
-		#ifdef BUFFER_WRITES
 		if (ctx->buf)
 			free(ctx->buf);
-		#endif
 
 		iob_free(ctx->batch);
 		io_close(ctx->fd);
@@ -57,15 +51,12 @@ int  context_read(context *ctx, char *buf, int length)
 
 void context_flush(context *ctx)
 {
-	#ifdef BUFFER_WRITES
 	if (ctx->buf) {
 		iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
 		ctx->buf = 0;
 		ctx->buf_size = 0;
 		ctx->buf_offset = 0;
 	}
-	#endif
-
 
 	int64 ret;
 
@@ -145,42 +136,65 @@ void context_eof(context *ctx)
 	context_flush(ctx);
 }
 
-#ifdef BUFFER_WRITES
+static const size_t chunk_size = 10*4096; // 10 pages
+
+size_t context_get_buffer(context *ctx, void **buf)
+{
+	if (!ctx->buf) {
+		ctx->buf_size = chunk_size;
+		ctx->buf = malloc(ctx->buf_size);
+		ctx->buf_offset = 0;
+		*buf = ctx->buf;
+	} else {
+		*buf = ctx->buf+ctx->buf_offset;
+	}
+	return (ctx->buf_size-ctx->buf_offset);
+}
+
+void context_consume_buffer(context *ctx, size_t bytes_written)
+{
+	assert(ctx->buf);
+	ctx->buf_offset += bytes_written;
+	assert(ctx->buf_offset <= ctx->buf_size);
+	if (ctx->buf_offset == ctx->buf_size) {
+		iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
+		ctx->buf = 0;
+		ctx->buf_size = 0;
+		ctx->buf_offset = 0;
+	}
+}
+
+void context_write_string(context *ctx, const char *s)
+{
+	while (1) {
+		char *write_buf=0;
+		size_t available = context_get_buffer(ctx, &write_buf);
+		size_t i=0;
+		while (i < available && s[i] != '\0') {
+			write_buf[i] = s[i];
+			++i;
+		}
+		context_consume_buffer(ctx, i);
+		if (s[i] == '\0')
+			return;
+		s += i;
+	}
+}
+
 void context_write_data(context *ctx, const void *buf, size_t length)
 {
-	static const size_t chunk_size = 10*4096; // 10 pages
-	for (;;) {
-		if (!ctx->buf) {
-			if (length > chunk_size) {
-				void *tmp = malloc(length);
-				iob_addbuf_free(ctx->batch, tmp, length);
-				return;
-			} else {
-				ctx->buf_size = chunk_size;
-				ctx->buf = malloc(ctx->buf_size);
-				memcpy(ctx->buf, buf, length);
-				ctx->buf_offset = length;
-				return;
-			}
+	while (1) {
+		void *write_buf=0;
+		size_t available = context_get_buffer(ctx, &write_buf);
+		if (available > length) {
+			memcpy(write_buf, buf, length);
+			context_consume_buffer(ctx, length);
+			return;
 		} else {
-			size_t l = length;
-			if (ctx->buf_offset + l > ctx->buf_size)
-				l = ctx->buf_size - ctx->buf_offset;
-			memcpy(ctx->buf + ctx->buf_offset, buf, l);
-			ctx->buf_offset += l;
-			assert (ctx->buf_offset <= ctx->buf_size);
-			if (ctx->buf_offset == ctx->buf_size) {
-				iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
-				ctx->buf = 0;
-				ctx->buf_size = 0;
-				ctx->buf_offset = 0;
-			}
-			if (l < length) {
-				buf += l;
-				length -= l;
-			} else {
-				return;
-			}
+			memcpy(write_buf, buf, available);
+			context_consume_buffer(ctx, available);
+			buf += available;
+			length -= available;
 		}
 	}
 }
@@ -196,4 +210,3 @@ void context_write_file(context *ctx, int64 fd, uint64 offset, uint64 length)
 
 	iob_addfile_close(ctx->batch, fd, offset, length);
 }
-#endif

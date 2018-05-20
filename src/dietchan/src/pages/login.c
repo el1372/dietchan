@@ -69,51 +69,49 @@ static int  login_page_finish (http_context *http)
 		page->session = 0;
 		page->user = 0;
 
-		HTTP_REDIRECT("302 Success", page->redirect);
+		PRINT_REDIRECT("302 Success", S(page->redirect));
 		return 0;
 	}
 
 	if (!page->username || str_equal(page->username, "")) {
-		HTTP_STATUS_HTML("200 OK");
+		PRINT_STATUS_HTML("200 OK");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		write_page_header(http);
-		HTTP_WRITE("<div class='top-bar'>");
-		write_board_bar(http);
-		HTTP_WRITE("</div>");
-		HTTP_WRITE("<form action='" PREFIX "/login' method='post'>"
-		             "<input type='hidden' name='redirect' value='");
-		HTTP_WRITE_ESCAPED(page->redirect);
-		HTTP_WRITE(  "'>"
-		           "<p><table>"
-		             "<tr>"
-		               "<th><label for='username'>Name</label></th>"
-		               "<td><input type='text' name='username'></td>"
-		             "</tr><tr>"
-		               "<th><label for='password'>Passwort</label></th>"
-		               "<td><input type='password' name='password'></td>"
-		             "</tr>"
-		           "</table></p>"
-		           "<p><input type='submit' value='Einloggen'></p>"
-		           "</form>");
-		write_bottom_bar(http);
-		write_page_footer(http);
+		PRINT_BODY();
+		print_page_header(http);
+		PRINT(S("<div class='top-bar'>"));
+		print_board_bar(http);
+		PRINT(S("</div>"
+		        "<form action='"), S(PREFIX), S("/login' method='post'>"
+		          "<input type='hidden' name='redirect' value='"), E(page->redirect), S("'>"
+		          "<p><table>"
+		            "<tr>"
+		              "<th><label for='username'>Name</label></th>"
+		              "<td><input type='text' name='username'></td>"
+		            "</tr><tr>"
+		              "<th><label for='password'>Passwort</label></th>"
+		              "<td><input type='password' name='password'></td>"
+		            "</tr>"
+		          "</table></p>"
+		          "<p><input type='submit' value='Einloggen'></p>"
+		        "</form>"));
+		print_bottom_bar(http);
+		print_page_footer(http);
 		HTTP_EOF();
 		return 0;
 	}
 	if (!page->password || str_equal(page->password, "")) {
-		HTTP_STATUS_HTML("400 Bad Request");
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Du musst ein Passwort eingeben.</h1>");
+		PRINT_STATUS_HTML("400 Bad Request");
+		PRINT_BODY();
+		PRINT(S("<h1>Du musst ein Passwort eingeben.</h1>"));
 		HTTP_EOF();
 		return 0;
 	}
 
 	struct user *user = find_user_by_name(page->username);
 	if (!user || !check_password(user_password(user), page->password)) {
-		HTTP_STATUS_HTML("403 Du kommst hier nid rein");
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Benutzername oder Passwort falsch.</h1>");
+		PRINT_STATUS_HTML("403 Du kommst hier nid rein");
+		PRINT_BODY();
+		PRINT(S("<h1>Benutzername oder Passwort falsch.</h1>"));
 		HTTP_EOF();
 		return 0;
 	}
@@ -148,11 +146,9 @@ static int  login_page_finish (http_context *http)
 
 	// Todo: Expire old session
 
-	HTTP_STATUS_REDIRECT("302 Success", page->redirect);
-	HTTP_WRITE("Set-Cookie:session=");
-	HTTP_WRITE_DYNAMIC(sid);
-	HTTP_WRITE(";path=" PREFIX "/;\r\n");
-	HTTP_BODY();
+	PRINT_STATUS_REDIRECT("302 Success", S(page->redirect));
+	PRINT(S("Set-Cookie:session="),S(sid),S(";path="),S(PREFIX), S("/;\r\n"));
+	PRINT_BODY();
 	HTTP_EOF();
 }
 

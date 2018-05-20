@@ -14,426 +14,394 @@
 #include "util.h"
 #include "captcha.h"
 #include "bbcode.h"
+#include "tpl.h"
 
-void write_reply_form(http_context *http, int board, int thread, struct captcha *captcha)
+void print_reply_form(http_context *http, int board, int thread, struct captcha *captcha)
 {
-	HTTP_WRITE("<form class='reply' action='" PREFIX "/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"
-	           // Bot trap
-	           "<div class='falle'>"
-	             "<del>"
-	             "<label for='username'>Username</label>"
-	             "<label for='comment'>Comment</label>"
-	             "<label for='text'>Text</label>"
-	             "<label for='website'>Website</label>"
-	             "<input name='username' type='text' size='1' autocomplete='nein' tabindex='-1'>"
-	             "<textarea name='comment' rows='1' cols='1' tabindex='-1'></textarea>"
-	             "<textarea name='text' rows='1' cols='1' tabindex='-1'></textarea>"
-	             "<input name='website' type='text' size='1' autocomplete='nein' tabindex='-1'>"
-	             "</del>"
-	           "</div>"
-	             // Actual form
-	             "<table>"
-	               "<tr>"
-	                 "<th colspan='3'>");
-	if (thread != -1)
-		HTTP_WRITE( "<h3>Antwort erstellen</h3>");
-	else
-		HTTP_WRITE( "<h3>Neuen Faden erstellen</h3>");
-	HTTP_WRITE(      "</th>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='sage'>Säge</label></th>"
-	                 "<td colspan='2'><input type='checkbox' name='sage' value='1'></td>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='subject'>Betreff</label></th>"
-	                 "<td><input name='subject' type='text'></td>"
-	                 "<td width='1'>");
-	if (thread != -1)
-		HTTP_WRITE(      "<input type='submit' value='Antwort erstellen'>");
-	else
-		HTTP_WRITE(      "<input type='submit' value='Absenden'>");
-
-	HTTP_WRITE(      "</td>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='username2'>Name</label></th>"
-	                 "<td colspan='2'><input name='username2' type='text' autocomplete='nein'></td>"
-	                 //"<td colspan='2'><input name='username2' type='text' ></td>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='text2'>Kommentar</label></th>"
-	                 "<td colspan='2'><textarea name='text2'></textarea></td>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='text'>Dateien</label>"
-	                      "<span class='sub-label'> (≤ 4)</span>"
-	                 "</th>"
-	                 "<td colspan='2'><input type='file' name='file' multiple required><br>"
-	                     "<input type='file' name='file' multiple required><br>"
-	                     "<input type='file' name='file' multiple required><br>"
-	                     "<input type='file' name='file' multiple required><br>"
-	                 "</td>"
-	               "</tr>"
-	               "<tr>"
-	                 "<th><label for='password'>Passwort</label></th>"
-	                 "<td colspan='2'>"
-	                   "<input type='text' name='dummy' autocomplete='username' value='-' "
-	                     "size='1' maxlength='1' tabindex='-1' style='width: 0; height:0; "
-	                     "padding: 0; margin:0; position:absolute; left: -10000px; '>"
-	                   "<input type='password' name='password' autocomplete='password'>"
-	                 "</td>"
-	               "</tr>");
+	PRINT(S("<form class='reply' action='"), S(PREFIX), S("/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"), S(
+	        // Bot trap
+	        "<div class='falle'>"
+	          "<del>"
+	          "<label for='username'>Username</label>"
+	          "<label for='comment'>Comment</label>"
+	          "<label for='text'>Text</label>"
+	          "<label for='website'>Website</label>"
+	          "<input name='username' type='text' size='1' autocomplete='nein' tabindex='-1'>"
+	          "<textarea name='comment' rows='1' cols='1' tabindex='-1'></textarea>"
+	          "<textarea name='text' rows='1' cols='1' tabindex='-1'></textarea>"
+	          "<input name='website' type='text' size='1' autocomplete='nein' tabindex='-1'>"
+	          "</del>"
+	        "</div>"
+	          // Actual form
+	        "<table>"
+	          "<tr>"
+	            "<th colspan='3'>"
+	            "<h3>"), (thread == -1)?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
+	          "</th>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='sage'>Säge</label></th>"
+	            "<td colspan='2'><input type='checkbox' name='sage' value='1'></td>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='subject'>Betreff</label></th>"
+	            "<td><input name='subject' type='text'></td>"
+	            "<td width='1'>"
+	             "<input type='submit' value='"), (thread!=-1)?S("Antwort erstellen"):S("Faden erstellen"), S("'>"
+	            "</td>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='username2'>Name</label></th>"
+	            "<td colspan='2'><input name='username2' type='text' autocomplete='nein'></td>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='text2'>Kommentar</label></th>"
+	            "<td colspan='2'><textarea name='text2'></textarea></td>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='text'>Dateien</label>"
+	                 "<span class='sub-label'> (≤ 4)</span>"
+	            "</th>"
+	            "<td colspan='2'><input type='file' name='file' multiple required><br>"
+	                "<input type='file' name='file' multiple required><br>"
+	                "<input type='file' name='file' multiple required><br>"
+	                "<input type='file' name='file' multiple required><br>"
+	            "</td>"
+	          "</tr>"
+	          "<tr>"
+	            "<th><label for='password'>Passwort</label></th>"
+	            "<td colspan='2'>"
+	              "<input type='text' name='dummy' autocomplete='username' value='-' "
+	                "size='1' maxlength='1' tabindex='-1' style='width: 0; height:0; "
+	                "padding: 0; margin:0; position:absolute; left: -10000px; '>"
+	              "<input type='password' name='password' autocomplete='password'>"
+	            "</td>"
+	          "</tr>"));
 	if (captcha) {
-		HTTP_WRITE("<tr>"
-		             "<th></th>"
-		             "<td colspan='2'><center>"
-		               "<img class='captcha' src='" PREFIX "/captchas/");
-		HTTP_WRITE_XLONG(captcha_id(captcha));
-		HTTP_WRITE(    ".png'></center>"
-		             "</td>"
-		           "</tr>"
-		           "<tr>"
-		             "<th><label for='captcha'>Captcha</label></th>"
-		             "<td colspan='2'><input type='text' name='captcha' autocomplete='off'></td>"
-		           "</tr>");
+		PRINT(S("<tr>"
+		          "<th></th>"
+		          "<td colspan='2'><center>"
+		            "<img class='captcha' src='"), S(PREFIX), S("/captchas/"), X(captcha_id(captcha)), S(".png'></center>"
+		          "</td>"
+		        "</tr>"
+		        "<tr>"
+		          "<th><label for='captcha'>Captcha</label></th>"
+		          "<td colspan='2'><input type='text' name='captcha' autocomplete='off'></td>"
+		        "</tr>"));
 	}
-	HTTP_WRITE(  "</table>");
-
+	PRINT(S("</table>"));
 	if (captcha) {
-		HTTP_WRITE("<input name='captcha_id' value='");
-		HTTP_WRITE_XLONG(captcha_id(captcha));
-		HTTP_WRITE("' type='hidden'>");
-		HTTP_WRITE("<input name='captcha_token' value='");
-		HTTP_WRITE_XLONG(captcha_token(captcha));
-		HTTP_WRITE("' type='hidden'>");
+		PRINT(S("<input name='captcha_id' value='"), X(captcha_id(captcha)), S("' type='hidden'>"
+		        "<input name='captcha_token' value='"), X(captcha_token(captcha)), S("' type='hidden'>"));
 	}
-
-	if (thread != -1) {
-		HTTP_WRITE("<input name='thread' value='");
-		HTTP_WRITE_ULONG(thread);
-		HTTP_WRITE("' type='hidden'>");
-	} else {
-		HTTP_WRITE("<input name='board' value='");
-		HTTP_WRITE_ULONG(board);
-		HTTP_WRITE("' type='hidden'>");
-	}
-
-	HTTP_WRITE("</form>");
+	if (thread != -1)
+		PRINT(S("<input name='thread' value='"), UL(thread), S("' type='hidden'>"));
+	else
+		PRINT(S("<input name='board' value='"), UL(board), S("' type='hidden'>"));
+	PRINT(S("</form>"));
 }
 
-void write_board_bar(http_context *http)
+void print_board_bar(http_context *http)
 {
 	struct board *board = master_first_board(master);
-	HTTP_WRITE("<div class='boards'>");
+	PRINT(S("<div class='boards'>"));
 	while (board) {
-		HTTP_WRITE("<span class='board'><a href='" PREFIX "/");
-		HTTP_WRITE_ESCAPED(board_name(board));
-		HTTP_WRITE("/' title='");
-		HTTP_WRITE_ESCAPED(board_title(board));
-		HTTP_WRITE("'>[");
-		HTTP_WRITE_ESCAPED(board_name(board));
-		HTTP_WRITE("]</a></span>"
-		           "<span class='space'> </span>");
+		PRINT(S("<span class='board'>"
+		          "<a href='"), S(PREFIX), S("/"), E(board_name(board)), S("/' "
+		             "title='"), E(board_title(board)), S("'>["), E(board_name(board)), S("]"
+		          "</a>"
+		        "</span><span class='space'> </span>"));
 		board = board_next_board(board);
 	}
 
-	HTTP_WRITE("</div>");
+	PRINT(S("</div>"));
 }
 
-void write_top_bar(http_context *http, struct user *user, const char *url)
+void print_top_bar(http_context *http, struct user *user, const char *url)
 {
-	HTTP_WRITE("<div class='top-bar'>");
-	HTTP_WRITE("<div class='top-bar-right'>");
+	PRINT(S("<div class='top-bar'>"
+	        "<div class='top-bar-right'>"));
 	if (user) {
 		if (user_type(user) == USER_ADMIN || user_type(user) == USER_MOD)
-			HTTP_WRITE("<a href='" PREFIX "/dashboard'>Kontrollzentrum</a><span class='space'> </span>");
-		HTTP_WRITE("<a href='" PREFIX "/login?logout&amp;redirect=");
-		HTTP_WRITE_ESCAPED(url);
-		HTTP_WRITE("'>Ausloggen</a>");
+			PRINT(S("<a href='"), S(PREFIX), S("/dashboard'>Kontrollzentrum</a><span class='space'> </span>"));
+		PRINT(S("<a href='"), S(PREFIX), S("/login?logout&amp;redirect="), E(url), S("'>Ausloggen</a>"));
 	} else {
-		HTTP_WRITE("<a href='" PREFIX "/login?redirect=");
-		HTTP_WRITE_ESCAPED(url);
-		HTTP_WRITE("'>Einloggen</a>");
+		PRINT(S("<a href='"), S(PREFIX), S("/login?redirect="), E(url), S("'>Einloggen</a>"));
 	}
-	HTTP_WRITE("</div>");
-	write_board_bar(http);
-	HTTP_WRITE("</div>");
+	PRINT(S("</div>"));
+	print_board_bar(http);
+	PRINT(S("</div>"));
 }
 
-void write_bottom_bar(http_context *http)
+void print_bottom_bar(http_context *http)
 {
-	HTTP_WRITE("<div class='bottom-bar'>");
-	write_board_bar(http);
-	HTTP_WRITE("</div>");
+	PRINT(S("<div class='bottom-bar'>"));
+	print_board_bar(http);
+	PRINT(S("</div>"));
 }
 
-void write_mod_bar(http_context *http, int ismod)
+void print_mod_bar(http_context *http, int ismod)
 {
 	if (!ismod) {
-		HTTP_WRITE("<div class='mod-bar'>"
-		             "<input type='text' name='dummy' autocomplete='username' value='-' size='1' "
-		               "maxlength='1' style='display:none'>"
-		             "<span class='segment'>"
-		               "<label for='password'>Passwort:</label>"
-		               "<span class='space'> </span>"
-		               "<input type='password' name='password' autocomplete='password'>"
-		             "</span><span class='space'> </span>"
-		             "<span class='segment'>"
-		               "<button name='action' value='delete'>Löschen</button>"
-		             "</span><span class='space'> </span>"
-		             "<span class='segment'>"
-		               "<button name='action' value='report'>Petzen</button>"
-		             "</span>"
-		           "</div>");
+		PRINT(S("<div class='mod-bar'>"
+		          "<input type='text' name='dummy' autocomplete='username' value='-' size='1' "
+		            "maxlength='1' style='display:none'>"
+		          "<span class='segment'>"
+		            "<label for='password'>Passwort:</label>"
+		            "<span class='space'> </span>"
+		            "<input type='password' name='password' autocomplete='password'>"
+		          "</span><span class='space'> </span>"
+		          "<span class='segment'>"
+		            "<button name='action' value='delete'>Löschen</button>"
+		          "</span><span class='space'> </span>"
+		          "<span class='segment'>"
+		            "<button name='action' value='report'>Petzen</button>"
+		          "</span>"
+		        "</div>"));
 	} else {
-		HTTP_WRITE("<div class='mod-bar'>"
-		             "<span class='segment'>"
-		               "<label for='action'>Aktion:</label>"
-		               "<span class='space'> </span>"
-		               "<select name='action'>"
-		                 "<option value='delete'>Löschen</option>"
-		                 "<option value='ban'>Bannen</option>"
-		                 "<option value='delete_and_ban'>Löschen + Bannen</option>"
-		                 "<option value='close'>Schließen</option>"
-		                 "<option value='pin'>Anpinnen</option>"
-		               "</select>"
-		             "</span><span class='space'> </span>"
-		             "<span class='segment'>"
-		               "<input type='submit' value='Ausführen'>"
-		             "</span>"
-		           "</div>");
+		PRINT(S("<div class='mod-bar'>"
+		          "<span class='segment'>"
+		            "<label for='action'>Aktion:</label>"
+		            "<span class='space'> </span>"
+		            "<select name='action'>"
+		              "<option value='delete'>Löschen</option>"
+		              "<option value='ban'>Bannen</option>"
+		              "<option value='delete_and_ban'>Löschen + Bannen</option>"
+		              "<option value='close'>Schließen</option>"
+		              "<option value='pin'>Anpinnen</option>"
+		            "</select>"
+		          "</span><span class='space'> </span>"
+		          "<span class='segment'>"
+		            "<input type='submit' value='Ausführen'>"
+		          "</span>"
+		        "</div>"));
 	}
 }
 
 void write_page_css(http_context *http)
 {
-	HTTP_WRITE("h1, h3 {"
-	             "text-align: center;"
-	           "}"
-	           "th {"
-	             "text-align: left;"
-	             "vertical-align: baseline;"
-	           "}"
-	           "td {"
-	             "vertical-align: baseline;"
-	             "position: relative;"
-	           "}"
-               ".footer {"
-                 "text-align: right;"
-               "}"
-	           "form.reply textarea,"
-	           "form.reply input[type='text'],"
-               "form.reply input[type='file'],"
-	           "form.reply input[type='password'] {"
-                 "width: 100%;"
-                 "box-sizing: border-box;"
-               "}"
-               "form.reply input[type='file'] {"
-	             "margin-bottom: 4px;"
-	             "border: none;"
-	           "}"
-	           "form.reply input[type='file']:invalid + br,"
-	           "form.reply input[type='file']:invalid + br + input[type='file'] {"
-	             "display:none;"
-	           "}"
-               "input[type='checkbox'] {"
-	             "margin: 0;"
-	           "}"
-               "form.reply {"
-                 "margin-bottom: 2em;"
-               "}"
-               "form.reply > table {"
-                 "margin: 0 auto;"
-               "}"
-               "form.reply textarea {"
-                 "vertical-align: baseline;"
-                 "min-width:300px;"
-                 "min-height:1.5em;"
-               "}"
-               "form.reply input[type=checkbox] {"
-                 "position: relative;"
-                 "top: 2.5px;"
-               "}"
-               "form.reply td label {"
-                 "font-size: small;"
-	           "}"
-               ".sub-label {"
-                 "font-weight: normal;"
-               "}"
-               ".falle {"
-                 "position: absolute;"
-	             "left: -10000px;"
-               "}"
-               "img.captcha {"
-                 "display: block;"
-                 "width: 140px;"
-                 "height: 50px;"
-               "}"
-               "li.reply {"
-                 "list-style-type: disc;"
-                 "position: relative;"
-                 "left: 1.5em;"
-               "}"
-               "ul.replies {"
-                 "padding-left: 0;"
-               "}"
-               ".thread{"
-                 "clear:both;"
-               "}"
-               ".thread-stats {"
-                 "margin-left: 2em;"
-                 "margin-top: 1em;"
-                 "margin-bottom: 0.75em;"
-                 "opacity: 0.5;"
-               "}"
-               ".post-header {"
-                 "margin-top: .25em;"
-                 "margin-bottom: .5em;"
-               "}"
-               ".post-header > .sage {"
-                 "color: red;"
-                 "font-weight: bold;"
-               "}"
-               ".post-header > .sticky,"
-               ".post-header > .closed {"
-                 "font-weight: bold;"
-               "}"
-               ".post-header input[type='checkbox'] {"
-                 "position: relative;"
-                 "top: 2.5px;"
-                 "height: 1em;"
-               "}"
-               ".post.reply {"
-                 "overflow:hidden;"
-                 "display: inline-block;"
-                 "max-width: 100%;"
-               "}"
-               ".post ul {"
-	             "padding-left: 2em;"
-	             "padding-right: 2em;"
-               "}"
-               ".post.reply ul {"
-	             "margin-bottom: .25em;"
-	             "margin-top: .25em;"
-	           "}"
-	           ".replies {"
-	             "margin-left: 2em;"
-	           "}"
-              // ".post:target {"
-              //   "background: #ffc;"
-              // "}"
-               ".content {"
-                 "margin-bottom: .25em;"
-               "}"
-               ".text {"
-                 "margin-top: .5em;"
-                 "overflow-wrap: break-word;"
-               "}"
-	           "div.files {"
-                 "margin-bottom: .25em;"
-               "}"
-               "ul.thread > li,"
-               "ul.replies > li,"
-	           " {"
-                 "margin-bottom: .5em;"
-               "}"
-               "div.files {"
-                 "float: left;"
-                 "margin-top: -1.5em;"
-               "}"
-               "div.files.multiple {"
-                 "float: none;"
-               "}"
-               "div.file {"
-                 "margin-right: 1.5em;"
-	             "margin-top: 1.5em;"
-                 "display: inline-block;"
-	             "vertical-align: top;"
-               "}"
-               ".file-header {"
-                 "font-size: small;"
-               "}"
-               ".file-subheader {"
-                 "font-size: x-small;"
-               "}"
-               ".file-thumbnail-img {"
-                 "vertical-align: bottom;"
-                 "max-width: 200px;"
-                 "max-height: 200px;"
-               "}"
-               "span.quote {"
-                 "color: #090;"
-               "}"
-               "span.spoiler {"
-                 "color: #000;"
-                 "background: #000;"
-               "}"
-               "span.spoiler:hover {"
-                 "color: #fff;"
-               "}"
-               ".banned {"
-                 "color: #f00;"
-                 "font-weight: bold;"
-                 "margin-top: 1em;"
-               "}"
-               ".mod-bar {"
-                 "text-align: right;"
-               "}"
-               ".clear {"
-                 "clear: both;"
-               "}"
-               "span.ip {"
-                 "color: #35f;"
-               "}"
-               ".top-bar-right {"
-                 "float: right;"
-               "}"
-               ".bottom-bar {"
-                 "margin-top: 1em;"
-               "}"
-               );
+	PRINT(S("h1, h3 {"
+	          "text-align: center;"
+	        "}"
+	        "th {"
+	          "text-align: left;"
+	          "vertical-align: baseline;"
+	        "}"
+	        "td {"
+	          "vertical-align: baseline;"
+	          "position: relative;"
+	        "}"
+	        ".footer {"
+	          "text-align: right;"
+	        "}"
+	        "form.reply textarea,"
+	        "form.reply input[type='text'],"
+	        "form.reply input[type='file'],"
+	        "form.reply input[type='password'] {"
+	          "width: 100%;"
+	          "box-sizing: border-box;"
+	        "}"
+	        "form.reply input[type='file'] {"
+	          "margin-bottom: 4px;"
+	          "border: none;"
+	        "}"
+	        "form.reply input[type='file']:invalid + br,"
+	        "form.reply input[type='file']:invalid + br + input[type='file'] {"
+	          "display:none;"
+	        "}"
+            "input[type='checkbox'] {"
+	          "margin: 0;"
+	        "}"
+	        "form.reply {"
+	          "margin-bottom: 2em;"
+	        "}"
+	        "form.reply > table {"
+	          "margin: 0 auto;"
+	        "}"
+	        "form.reply textarea {"
+	          "vertical-align: baseline;"
+	          "min-width:300px;"
+	          "min-height:1.5em;"
+	        "}"
+	        "form.reply input[type=checkbox] {"
+	          "position: relative;"
+	          "top: 2.5px;"
+	        "}"
+	        "form.reply td label {"
+	          "font-size: small;"
+	        "}"
+	        ".sub-label {"
+	          "font-weight: normal;"
+	        "}"
+	        ".falle {"
+	          "position: absolute;"
+	          "left: -10000px;"
+	        "}"
+	        "img.captcha {"
+	          "display: block;"
+	          "width: 140px;"
+	          "height: 50px;"
+	        "}"
+	        "li.reply {"
+	          "list-style-type: disc;"
+	          "position: relative;"
+	          "left: 1.5em;"
+	        "}"
+	        "ul.replies {"
+	          "padding-left: 0;"
+	        "}"
+	        ".thread{"
+	          "clear:both;"
+	        "}"
+	        ".thread-stats {"
+	          "margin-left: 2em;"
+	          "margin-top: 1em;"
+	          "margin-bottom: 0.75em;"
+	          "opacity: 0.5;"
+	        "}"
+	        ".post-header {"
+	          "margin-top: .25em;"
+	          "margin-bottom: .5em;"
+	        "}"
+	        ".post-header > .sage {"
+	          "color: red;"
+	          "font-weight: bold;"
+	        "}"
+	        ".post-header > .sticky,"
+	        ".post-header > .closed {"
+	          "font-weight: bold;"
+	        "}"
+	        ".post-header input[type='checkbox'] {"
+	          "position: relative;"
+	          "top: 2.5px;"
+	          "height: 1em;"
+	        "}"
+	        ".post.reply {"
+	          "overflow:hidden;"
+	          "display: inline-block;"
+	          "max-width: 100%;"
+	        "}"
+	        ".post ul {"
+	          "padding-left: 2em;"
+	          "padding-right: 2em;"
+	        "}"
+	        ".post.reply ul {"
+	          "margin-bottom: .25em;"
+	          "margin-top: .25em;"
+	        "}"
+	        ".replies {"
+	          "margin-left: 2em;"
+	        "}"
+	        // ".post:target {"
+	        //   "background: #ffc;"
+	        // "}"
+	        ".content {"
+	          "margin-bottom: .25em;"
+	        "}"
+	        ".text {"
+	          "margin-top: .5em;"
+	          "overflow-wrap: break-word;"
+	        "}"
+	        "div.files {"
+	          "margin-bottom: .25em;"
+	        "}"
+	        "ul.thread > li,"
+	        "ul.replies > li,"
+	        " {"
+	          "margin-bottom: .5em;"
+	        "}"
+	        "div.files {"
+	          "float: left;"
+	          "margin-top: -1.5em;"
+	        "}"
+	        "div.files.multiple {"
+	          "float: none;"
+	        "}"
+	        "div.file {"
+	          "margin-right: 1.5em;"
+	          "margin-top: 1.5em;"
+	          "display: inline-block;"
+	          "vertical-align: top;"
+	        "}"
+	        ".file-header {"
+	          "font-size: small;"
+	        "}"
+	        ".file-subheader {"
+	          "font-size: x-small;"
+	        "}"
+	        ".file-thumbnail-img {"
+	          "vertical-align: bottom;"
+	          "max-width: 200px;"
+	          "max-height: 200px;"
+	        "}"
+	        "span.quote {"
+	          "color: #090;"
+	        "}"
+	        "span.spoiler {"
+	          "color: #000;"
+	          "background: #000;"
+	        "}"
+	        "span.spoiler:hover {"
+	          "color: #fff;"
+	        "}"
+	        ".banned {"
+	          "color: #f00;"
+	          "font-weight: bold;"
+	          "margin-top: 1em;"
+	        "}"
+	        ".mod-bar {"
+	          "text-align: right;"
+	        "}"
+	        ".clear {"
+	          "clear: both;"
+	        "}"
+	        "span.ip {"
+	          "color: #35f;"
+	        "}"
+	        ".top-bar-right {"
+	          "float: right;"
+	        "}"
+	        ".bottom-bar {"
+	          "margin-top: 1em;"
+	        "}"
+	        ));
 }
 
-void write_page_header(http_context *http)
+void print_page_header(http_context *http)
 {
-	HTTP_WRITE("<!DOCTYPE html>"
-	           "<html>"
-	             "<head>"
-	               "<style>");
+	PRINT(S("<!DOCTYPE html>"
+	        "<html>"
+	          "<head>"
+	            "<style>"));
 	write_page_css(http);
-	HTTP_WRITE(    "</style>"
-	             "</head>"
-	             "<body>");
+	PRINT(S(    "</style>"
+	          "</head>"
+	          "<body>"));
 }
 
-void write_page_footer(http_context *http)
+void print_page_footer(http_context *http)
 {
-	HTTP_WRITE(    "<div class='footer'>"
-	                 "Proudly made without PHP, Java, Perl, MySQL, Postgres, MongoDB and Node.js.<br>"
-	               "</div>"
-	             "</body>"
-	           "</html>");
+	PRINT(S(    "<div class='footer'>"
+	              "Proudly made without PHP, Java, Perl, MySQL, Postgres, MongoDB and Node.js.<br>"
+	            "</div>"
+	          "</body>"
+	        "</html>"));
 }
 
-void write_post_url2(http_context *http, struct board *board, struct thread *thread, struct post *post, int absolute)
+void print_post_url2(http_context *http, struct board *board, struct thread *thread, struct post *post, int absolute)
 {
 	if (absolute) {
 		struct post *first_post = thread_first_post(thread);
 
-		HTTP_WRITE(PREFIX "/");
-		HTTP_WRITE_DYNAMIC(board_name(board));
-		HTTP_WRITE("/");
-		HTTP_WRITE_ULONG(post_id(first_post));
+		PRINT(S(PREFIX), S("/"), E(board_name(board)), S("/"), UL(post_id(first_post)));
 
 		if (first_post == post)
 			return;
 	}
-	HTTP_WRITE("#");
-	HTTP_WRITE_ULONG(post_id(post));
+	PRINT(S("#"), UL(post_id(post)));
 }
 
-void write_post_url(http_context *http, struct post *post, int absolute)
+void print_post_url(http_context *http, struct post *post, int absolute)
 {
 	struct thread *thread = 0;
 	struct board *board = 0;
@@ -442,14 +410,14 @@ void write_post_url(http_context *http, struct post *post, int absolute)
 		thread = post_thread(post);
 		board = thread_board(thread);
 	}
-	write_post_url2(http, board, thread, post, absolute);
+	print_post_url2(http, board, thread, post, absolute);
 }
 
 void pretty_print_mime(http_context *http, const char *mime_type)
 {
 	if (case_equals(mime_type, "image/jpeg")) {
 		// Print JPG instead of JPEG
-		HTTP_WRITE("JPG");
+		PRINT(S("JPG"));
 		return;
 	}
 	char *buf = alloca(strlen(mime_type)+1);
@@ -462,30 +430,9 @@ void pretty_print_mime(http_context *http, const char *mime_type)
 		++o;
 	}
 	*o = '\0';
-	HTTP_WRITE_DYNAMIC(buf);
+	PRINT(S(buf));
 }
 
-size_t fmt_time(char *out, uint64 ms)
-{
-	uint64 t = ms;
-	/*uint64 msecs  = t % 1000;*/ t /= 1000;
-	uint64 secs   = t % 60;   t /= 60;
-	uint64 mins   = t % 60;   t /= 60;
-	uint64 hours  = t;
-
-	char *o = out;
-	if (hours > 0) {
-		o += fmt_int(out?o:FMT_LEN, hours);
-		if (out) *o = ':';
-		++o;
-	}
-	o += fmt_uint0(out?o:FMT_LEN, mins, (hours>0)?2:1);
-	if (out) *o = ':';
-	++o;
-	o += fmt_uint0(out?o:FMT_LEN, secs, 2);
-
-	return o-out;
-}
 
 static void calculate_thumbnail_size(uint64 *w, uint64 *h, uint64 max_size)
 {
@@ -503,183 +450,130 @@ static void calculate_thumbnail_size(uint64 *w, uint64 *h, uint64 max_size)
 	}
 }
 
-void write_upload(http_context *http, struct upload *upload)
+void print_upload(http_context *http, struct upload *upload)
 {
 	uint64 w = upload_width(upload);
 	uint64 h = upload_height(upload);
 	calculate_thumbnail_size(&w,&h,200);
 
-	HTTP_WRITE("<div class='file'>"
-	             "<div class='file-header'>"
-	               "<span class='file-name'><a href='");
-	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
-	HTTP_WRITE_ESCAPED(upload_file(upload));
-	HTTP_WRITE(    "' download='");
-	HTTP_WRITE_ESCAPED(upload_original_name(upload));
 	char buf[256];
 	strcpy(buf, upload_original_name(upload));
 	abbreviate_filename(buf, 0.15*w*strlen(buf)/estimate_width(buf));
-	HTTP_WRITE(    "'");
-	if (strlen(buf) < strlen(upload_original_name(upload))) {
-		HTTP_WRITE(" title='");
-		HTTP_WRITE_ESCAPED(upload_original_name(upload));
-		HTTP_WRITE("'");
-	}
-	HTTP_WRITE(    ">");
-	HTTP_WRITE_ESCAPED(buf);
-	HTTP_WRITE(    "</a>");
-	HTTP_WRITE(    "</span>"
-	             "</div>"
-	             "<div class='file-subheader'>"
-	               "<span class='file-type'>");
+
 	const char *mime = upload_mime_type(upload);
-	pretty_print_mime(http, mime);
-	HTTP_WRITE(    "</span>");
-	if (case_starts(mime, "image/") || case_starts(mime, "video/")) {
-		HTTP_WRITE(" <span class='file-dimensions'>");
-		HTTP_WRITE_LONG(upload_width(upload));
-		HTTP_WRITE("×");
-		HTTP_WRITE_LONG(upload_height(upload));
-		HTTP_WRITE("</span>");
-	}
-	if (case_starts(mime, "video/")) {
-		HTTP_WRITE(" <span class='file-duration'>");
-		HTTP_WRITE_TIME(upload_duration(upload));
-		HTTP_WRITE("</span>");
-	}
-	HTTP_WRITE(    " <span class='file-size'>");
-	HTTP_WRITE_HUMANK(upload_size(upload));
-	HTTP_WRITE(    "</span>");
-	HTTP_WRITE(    "</div>"
-	             "<div class='file-thumbnail'>");
 
-	HTTP_WRITE(  "<a href='");
+	PRINT(S("<div class='file'>"
+	          "<div class='file-header'>"
+	            "<span class='file-name'>"
+	              "<a href='"),S(PREFIX), S("/uploads/"), E(upload_file(upload)), S("' "
+	                 "download='"), E(upload_original_name(upload)), S("'"));
+	if (strlen(buf) < strlen(upload_original_name(upload)))
+		PRINT(S(     " title='"), E(upload_original_name(upload)), S("'"));
+	PRINT(S(      ">"),
+	                E(buf),  S(
+	              "</a>"
+	            "</span>"
+	          "</div>"
+	          "<div class='file-subheader'>"
+	            "<span class='file-type'>"));
+	               pretty_print_mime(http, mime);
+	PRINT(S(    "</span>"));
 
-	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
-	HTTP_WRITE_ESCAPED(upload_file(upload));
-	HTTP_WRITE(    "'>");
-	HTTP_WRITE(      "<img class='file-thumbnail-img' src='");
-	HTTP_WRITE(PREFIX "/uploads/"); // Todo: Don't hardcode
-	HTTP_WRITE_ESCAPED(upload_thumbnail(upload));
-	HTTP_WRITE(      "'>");
-	HTTP_WRITE(    "</a>");
+	if (case_starts(mime, "image/") || case_starts(mime, "video/"))
+		PRINT(S(" <span class='file-dimensions'>"),
+		            I(upload_width(upload)), S("×"), I(upload_height(upload)),
+		      S("</span>"));
 
-	HTTP_WRITE(  "</div>"
-	           "</div>");
+	if (case_starts(mime, "video/"))
+		PRINT(S(" <span class='file-duration'>"), TIME_MS(upload_duration(upload)), S("</span>"));
+
+	PRINT(S(    " <span class='file-size'>"), HK(upload_size(upload)), S("</span>"
+	          "</div>"
+	          "<div class='file-thumbnail'>"
+	            "<a href='"), S(PREFIX), S("/uploads/"), E(upload_file(upload)), S("'>"
+	              "<img class='file-thumbnail-img' "
+	                   "src='"), S(PREFIX), S("/uploads/"), S(upload_thumbnail(upload)), S("'>"
+	            "</a>"
+	          "</div>"
+	        "</div>"));
 }
 
-void write_post(http_context *http, struct post *post, int absolute_url, int flags)
+void print_post(http_context *http, struct post *post, int absolute_url, int flags)
 {
 	struct thread *thread = post_thread(post);
 	int is_first = thread && thread_first_post(thread) == post;
 
-	HTTP_WRITE("<div class='post-wrapper'>");
-
-	if (is_first)
-		HTTP_WRITE("<div class='post first'");
-	else
-		HTTP_WRITE("<div class='post reply'");
-
-	HTTP_WRITE(  " id='");
-	HTTP_WRITE_ULONG(post_id(post));
-	HTTP_WRITE(  "'>"
-	               "<ul>"
-	                 "<li>"
-	                   "<div class='post-header'>"
-	                     "<span class='delete'>"
-	                       "<input type='checkbox' name='post' value='");
-	HTTP_WRITE_ULONG(post_id(post));
-	HTTP_WRITE(          "'>"
-	                     "</span><span class='space'> </span>"
-			             "<span class='link'>"
-		                   "<a href='");
-	write_post_url(http, post, absolute_url);
-	HTTP_WRITE(            "'>[l]</a>"
-	                     "</span><span class='space'> </span>"
-	                     "<span class='subject'><b>");
-	HTTP_WRITE_ESCAPED(post_subject(post));
-	HTTP_WRITE(          "</b></span>");
-	if (post_subject(post)[0] != '\0') {
-		HTTP_WRITE(      "<span class='space'> </span>");
-	}
-	HTTP_WRITE(          "<span class='username'>");
-	if (post_username(post)[0] == '\0')
-		HTTP_WRITE(DEFAULT_NAME);
-	else
-		HTTP_WRITE_ESCAPED(post_username(post));
-	HTTP_WRITE(          "</span><span class='space'> </span>");
+	PRINT(S("<div class='post-wrapper'>"
+	          "<div class='post "), is_first?S("first"):S("reply"), S("'"
+	              " id='"), UL(post_id(post)), S("'>"
+	            "<ul>"
+	              "<li>"
+	                "<div class='post-header'>"
+	                  "<span class='delete'>"
+	                    "<input type='checkbox' name='post' value='"), UL(post_id(post)), S("'>"
+	                  "</span><span class='space'> </span>"
+	                  "<span class='link'>"
+	                    "<a href='"));
+	                      print_post_url(http, post, absolute_url);
+	PRINT(S(            "'>[l]</a>"
+	                  "</span><span class='space'> </span>"
+	                  "<span class='subject'>"
+	                    "<b>"), E(post_subject(post)), S("</b>"
+	                  "</span>"),
+	                  (post_subject(post)[0] != '\0')?S("<span class='space'> </span>"):S(""),S(
+	                  "<span class='username'>"),
+	                  (post_username(post)[0] == '\0')?E(DEFAULT_NAME):E(post_username(post)),S(
+	                  "</span><span class='space'> </span>"));
 	if (flags & WRITE_POST_IP) {
-		HTTP_WRITE(      "<span class='ip client-ip' title='Client IP'>");
-		HTTP_WRITE_IP(post_ip(post));
-		HTTP_WRITE(      "</span>");
-		if (post_x_real_ip(post).version) {
-			HTTP_WRITE(  "<span class='space'> / </span>"
-			             "<span class='ip x-real-ip' title='X-Real-IP'>");
-			HTTP_WRITE_IP(post_x_real_ip(post));
-			HTTP_WRITE(  "</span>");
-		}
+		PRINT(S(      "<span class='ip client-ip' title='Client IP'>"), IP(post_ip(post)), S("</span>"));
+		if (post_x_real_ip(post).version)
+			PRINT(S(  "<span class='space'> / </span>"
+			          "<span class='ip x-real-ip' title='X-Real-IP'>"), IP(post_x_real_ip(post)), S("</span>"));
 		if (post_x_forwarded_for_count(post)) {
-			HTTP_WRITE(  "<span class='space'> / </span>"
-			             "<span class='ip x-forwarded-for' title='X-Forwarded-For'>");
+			PRINT(S(  "<span class='space'> / </span>"
+			          "<span class='ip x-forwarded-for' title='X-Forwarded-For'>"));
 			struct ip *ips = post_x_forwarded_for(post);
 			int comma = 0;
 			for (size_t i=0; i<post_x_forwarded_for_count(post); ++i) {
-				if (comma)
-					HTTP_WRITE("<span class='comma'>, </span>");
-				HTTP_WRITE("<span>");
-				HTTP_WRITE_IP(ips[i]);
-				HTTP_WRITE("</span>");
+				PRINT(comma?S("<span class='comma'>, </span>"):S(""), S("<span>"), IP(ips[i]), S("</span>"));
 				comma = 1;
 			}
-			HTTP_WRITE(  "</span>");
+			PRINT(S(  "</span>"));
 		}
 	}
-	HTTP_WRITE(          "<span class='space'> </span>");
-	HTTP_WRITE(          "<span class='time'>");
-	HTTP_WRITE_HTTP_DATE(post_timestamp(post));
-	HTTP_WRITE(          "</span><span class='space'> </span>");
-	HTTP_WRITE(          "<span class='number'>Nr. ");
-	HTTP_WRITE_ULONG(post_id(post));
-	HTTP_WRITE(          "</span><span class='space'> </span>");
-	if (post_sage(post))
-		HTTP_WRITE(      "<span class='sage'>SÄGE</span>");
-	if (thread_pinned(thread) && thread_first_post(thread) == post)
-		HTTP_WRITE(      "<span class='sticky'>Klebrig</span><span class='space'> </span>");
-	if (thread_closed(thread) && thread_first_post(thread) == post)
-		HTTP_WRITE(      "<span class='closed'>Geschlossen</span><span class='space'> </span>");
-	HTTP_WRITE(        "</div>"
-	                   "<div class='content'>");
+	PRINT(S(          "<span class='space'> </span>"
+	                  "<span class='time'>"), HTTP_DATE(post_timestamp(post)), S("</span>"
+	                  "<span class='space'> </span>"
+	                  "<span class='number'>Nr. "), UL(post_id(post)), S("</span>"
+	                  "<span class='space'> </span>"),
+	                  (post_sage(post))?
+	                    S("<span class='sage'>SÄGE</span>"):S(""),
+	                  (thread_pinned(thread) && thread_first_post(thread) == post)?
+	                    S("<span class='sticky'>Klebrig</span><span class='space'> </span>"):S(""),
+	                  (thread_closed(thread) && thread_first_post(thread) == post)?
+	                    S("<span class='closed'>Geschlossen</span><span class='space'> </span>"):S(""), S(
+	                "</div>"
+	                "<div class='content'>"));
 	struct upload *up = post_first_upload(post);
 	int multi_upload = 0;
 	if (up) {
-		if (upload_next_upload(up))
-			multi_upload = 1;
-
-		if (multi_upload)
-	    	HTTP_WRITE(  "<div class='files multiple'>");
-		else
-	    	HTTP_WRITE(  "<div class='files'>");
-
+		PRINT(S("<div class='files"), upload_next_upload(up)?S(" multiple"):S(""), S("'>"));
 		while (up) {
-			write_upload(http, up);
+			print_upload(http, up);
 			up = upload_next_upload(up);
 		}
-		HTTP_WRITE(      "</div>");
+		PRINT(S("</div>"));
 	}
-	HTTP_WRITE(          "<div class='text'>");
-	//HTTP_WRITE_ESCAPED(post_text(post));
+	PRINT(S(        "<div class='text'>"));
 	write_bbcode(http, post_text(post), absolute_url?0:thread);
-	HTTP_WRITE(          "</div>");
-	if (post_banned(post) && post_ban_message(post)) {
-		HTTP_WRITE(      "<div class='banned'>(");
-		HTTP_WRITE_ESCAPED(post_ban_message(post));
-		HTTP_WRITE(      ")</div>");
-	}
-	HTTP_WRITE(        "</div>");
-	HTTP_WRITE(      "</li>"
-	               "</ul>");
-	HTTP_WRITE(  "</div>");
-	HTTP_WRITE("</div>");
+	PRINT(S(        "</div>"));
+	if (post_banned(post) && post_ban_message(post))
+		PRINT(S(    "<div class='banned'>("), E(post_ban_message(post)), S(")</div>"));
+	PRINT(S(        "</div>"
+	              "</li>"
+	            "</ul>"
+	          "</div>"
+	        "</div>"));
 }
 
 size_t estimate_width(const char *buffer)
@@ -727,76 +621,11 @@ void abbreviate_filename(char *buffer, size_t max_length)
 	memmove(&buffer[start], ellipsis, strlen(ellipsis));
 }
 
-size_t html_escape_char(char *output, char character)
-{
-	char *entity;
-	switch (character) {
-		case '&':  entity = "&amp;";  break;
- 		case '<':  entity = "&lt;";   break;
- 		case '>':  entity = "&gt;";   break;
- 		case '"':  entity = "&quot;"; break;
- 		case '\'': entity = "&#x27;"; break;
- 		case '/':  entity = "&#x2F;"; break;
- 		default:
- 			if (output)
- 				*output = character;
- 			return 1;
-	}
-	if (output)
-		strncpy(output, entity, strlen(entity));
-	return strlen(entity);
-}
 
-size_t fmt_escape(char *buf, const char *unescaped)
-{
-	size_t escaped_length = 0;
-	const char *c;
-	if (!buf) {
-		for (c = unescaped; *c != '\0'; ++c) {
-			escaped_length += html_escape_char(FMT_LEN, *c);
-		}
-	} else {
-		char *o = buf;
-		for (c = unescaped; *c != '\0'; ++c) {
-			size_t d = html_escape_char(o, *c);
-			o += d;
-			escaped_length += d;
-		}
-	}
-	return escaped_length;
-}
-
-size_t fmt_escapen(char *buf, const char *unescaped, size_t n)
-{
-	size_t escaped_length = 0;
-	const char *c;
-	if (!buf) {
-		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
-			escaped_length += html_escape_char(FMT_LEN, *c);
-		}
-	} else {
-		char *o = buf;
-		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
-			size_t d = html_escape_char(o, *c);
-			o += d;
-			escaped_length += d;
-		}
-	}
-	return escaped_length;
-}
-
-void write_escaped(context *ctx, const char *unescaped)
-{
-	size_t len = fmt_escape(FMT_LEN, unescaped);
-	char *buf = alloca(len+1);
-	buf[fmt_escape(buf, unescaped)] = '\0';
-	context_write_data(ctx, buf, len);
-}
-
-void write_session(http_context *http, struct session *session)
+void print_session(http_context *http, struct session *session)
 {
 	if (!session)
-		HTTP_WRITE("Set-Cookie: session=; path=" PREFIX "/; expires=Thu, 01 Jan 1970 00:00:00 GMT;\r\n");
+		PRINT(S("Set-Cookie: session=; path="), S(PREFIX), S("/; expires=Thu, 01 Jan 1970 00:00:00 GMT;\r\n"));
 }
 
 void find_bans(struct ip *ip, struct board *board, find_bans_callback callback, void *extra)
@@ -912,11 +741,8 @@ size_t parse_boards(http_context *http, char *s, array *boards, int *ok)
 		s[i+d] = '\0';
 		struct board *board = find_board_by_name(&s[i]);
 		if (!board) {
-			if (http) {
-				HTTP_WRITE("<p class='error'>Brett existiert nicht: /");
-				HTTP_WRITE_DYNAMIC(&s[i]);
-				HTTP_WRITE("/</p>");
-			}
+			if (http)
+				PRINT(S("<p class='error'>Brett existiert nicht: /"), E(&s[i]), S("/</p>"));
 			*ok = 0;
 			i += d;
 			continue;
@@ -960,4 +786,12 @@ void parse_x_forwarded_for(array *ips, const char *header)
 		struct ip *member = array_allocate(ips, sizeof(struct ip), count);
 		*member = ip;
 	}
+}
+
+void print_escaped(context *ctx, const char *unescaped)
+{
+	size_t len = fmt_escape(FMT_LEN, unescaped);
+	char *buf = alloca(len+1);
+	buf[fmt_escape(buf, unescaped)] = '\0';
+	context_write_data(ctx, buf, len);
 }

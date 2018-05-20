@@ -90,9 +90,9 @@ static int static_page_finish (http_context *http)
 		HTTP_FAIL(NOT_FOUND); // We could be more specific here, but for now let's just pretend it does not exist.
 
 	if (st.st_mtime <= page->if_modified_since) {
-		HTTP_STATUS("304 Not changed");
-		HTTP_WRITE("Cache-Control: private, max-age=31536000\r\n"); // 1 year
-		HTTP_BODY();
+		PRINT_STATUS("304 Not changed");
+		PRINT(S("Cache-Control: private, max-age=31536000\r\n")); // 1 year
+		PRINT_BODY();
 		HTTP_EOF();
 		return 0;
 	}
@@ -105,19 +105,13 @@ static int static_page_finish (http_context *http)
 	const char *ext = strrchr(page->real_path, '.');
 	const char *mime = get_mime_type_for_extension(ext);
 
-	HTTP_STATUS("200 OK");
-	HTTP_WRITE("Last-Modified: ");
-	HTTP_WRITE_HTTP_DATE(st.st_mtime);
-	HTTP_WRITE("\r\n"
-	           "Cache-Control: private, max-age=31536000\r\n" // 1 year
-	           "Content-Type: ");
-	HTTP_WRITE_DYNAMIC(mime);
-	HTTP_WRITE("\r\n"
-	           "Content-Length: ");
-	HTTP_WRITE_ULONG(st.st_size);
-	HTTP_WRITE("\r\n");
+	PRINT_STATUS("200 OK");
+	PRINT(S("Last-Modified: "),HTTP_DATE(st.st_mtime), S("\r\n"
+	        "Cache-Control: private, max-age=31536000\r\n" // 1 year
+	        "Content-Type: "), S(mime), S("\r\n"
+	        "Content-Length: "), UL(st.st_size), S("\r\n"));
 	// Todo: mime type
-	HTTP_BODY();
+	PRINT_BODY();
 	HTTP_WRITE_FILE(fd, 0, st.st_size);
 
 	HTTP_EOF();

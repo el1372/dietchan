@@ -83,38 +83,30 @@ static int board_page_cookie (http_context *http, char *key, char *val)
 	return 0;
 }
 
-static void write_board_nav(http_context *http, struct board *board, int64 current_page)
+static void print_board_nav(http_context *http, struct board *board, int64 current_page)
 {
 	struct board_page *page = (struct board_page*)http->info;
 
 	int64 page_count=(board_thread_count(board))/THREADS_PER_PAGE + 1;
 
-	HTTP_WRITE("<div class='board-nav'>");
+	PRINT(S("<div class='board-nav'>"));
 
 	if (page_count > 1) {
 		for (int64 i=0; i<page_count; ++i) {
 			if (i != current_page) {
-				HTTP_WRITE("<a class='page' href='" PREFIX "/");
-				HTTP_WRITE_ESCAPED(board_name(board));
-				HTTP_WRITE("/");
-				if (i>0) {
-					HTTP_WRITE("?p=");
-					HTTP_WRITE_LONG(i);
-				}
-				HTTP_WRITE("'>[");
-				HTTP_WRITE_LONG(i);
-				HTTP_WRITE("]</a>"
-				           "<span class='space'> </span>");
+				PRINT(S("<a class='page' href='"), S(PREFIX), S("/"), E(board_name(board)), S("/"));
+				if (i>0)
+					PRINT(S("?p="),L(i));
+				PRINT(S("'>["), L(i), S("]</a>"
+				        "<span class='space'> </span>"));
 			} else {
-				HTTP_WRITE("<span class='page current'>[");
-				HTTP_WRITE_LONG(i);
-				HTTP_WRITE("]</span>"
-				           "<span class='space'> </span>");
+				PRINT(S("<span class='page current'>["), L(i), S("]</span>"
+				        "<span class='space'> </span>"));
 			}
 		}
 	}
 
-	HTTP_WRITE("</div>");
+	PRINT(S("</div>"));
 
 }
 
@@ -123,11 +115,11 @@ static int  board_page_finish (http_context *http)
 	struct board_page *page = (struct board_page*)http->info;
 	struct board* board = (page->board)?find_board_by_name(page->board):0;
 	if (!board) {
-		HTTP_STATUS_HTML("404 Not Found");
+		PRINT_STATUS_HTML("404 Not Found");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>404</h1>"
-		           "<p>Das Brett wurde nicht gefunden :(.<p>");
+		PRINT_BODY();
+		PRINT(S("<h1>404</h1>"
+		        "<p>Das Brett wurde nicht gefunden :(.</p>"));
 		HTTP_EOF();
 		return ERROR;
 	}
@@ -137,11 +129,11 @@ static int  board_page_finish (http_context *http)
 	int64 range_end=range_start+THREADS_PER_PAGE;
 
 	if (range_start < 0 || page->page >= page_count) {
-		HTTP_STATUS_HTML("404 Not Found");
+		PRINT_STATUS_HTML("404 Not Found");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>404</h1>"
-		           "<p>Die Seite wurde nicht gefunden.<p>");
+		PRINT_BODY();
+		PRINT(S("<h1>404</h1>"
+		        "<p>Die Seite wurde nicht gefunden.</p>"));
 		HTTP_EOF();
 		return ERROR;
 	}
@@ -150,35 +142,23 @@ static int  board_page_finish (http_context *http)
 
 	int post_render_flags = ismod?WRITE_POST_IP:0;
 
-	HTTP_STATUS_HTML("200 OK");
-	HTTP_WRITE_SESSION();
-	HTTP_BODY();
-
-	write_page_header(http);
-
-	write_top_bar(http, page->user, page->url);
-
-	HTTP_WRITE("<h1>/");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/ – ");
-	HTTP_WRITE_ESCAPED(board_title(board));
-	HTTP_WRITE("</h1>");
-
-	HTTP_WRITE("<hr>");
-
 	struct captcha *captcha = 0;
 	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
 	                    board, BAN_TARGET_POST, is_captcha_required)) {
 		captcha = random_captcha();
 	}
 
-	write_reply_form(http, board_id(board), -1, captcha);
-
-	write_board_nav(http, board, page->page);
-
-	HTTP_WRITE("<hr>");
-
-	HTTP_WRITE("<form action='" PREFIX "/mod' method='post'>");
+	PRINT_STATUS_HTML("200 OK");
+	HTTP_WRITE_SESSION();
+	PRINT_BODY();
+	print_page_header(http),
+	print_top_bar(http, page->user, page->url);
+	PRINT(S("<h1>/"), E(board_name(board)), S("/ – "), E(board_title(board)), S("</h1>"
+	        "<hr>"));
+	print_reply_form(http, board_id(board), -1, captcha),
+	print_board_nav(http, board, page->page);
+	PRINT(S("<hr>"
+	        "<form action='"), S(PREFIX), S("/mod' method='post'>"));
 
 	struct thread* thread = board_first_thread(board);
 	int64 i=0;
@@ -188,17 +168,12 @@ static int  board_page_finish (http_context *http)
 
 		if (i>=range_start) {
 			struct post* post = thread_first_post(thread);
-			write_post(http, post, 1, post_render_flags);
+			print_post(http, post, 1, post_render_flags);
 
 			if (thread_post_count(thread) > PREVIEW_REPLIES + 1) {
-				HTTP_WRITE("<div class='thread-stats'>");
 				uint64 n = thread_post_count(thread) - PREVIEW_REPLIES-1;
-				HTTP_WRITE_ULONG(n);
-				if (n > 1)
-					HTTP_WRITE(" Antworten");
-				else
-					HTTP_WRITE(" Antwort");
-				HTTP_WRITE(" nicht angezeigt.</div>");
+				PRINT(S("<div class='thread-stats'>"), UL(n), S(" "),
+				       (n > 1)?S("Antworten"):S("Antwort"), S(" nicht angezeigt.</div>"));
 			}
 
 			struct post *reply = thread_last_post(thread);
@@ -208,41 +183,36 @@ static int  board_page_finish (http_context *http)
 					if (prev == post) break;
 					reply = prev;
 				}
-				HTTP_WRITE("<div class='replies'>");
+				PRINT(S("<div class='replies'>"));
 				while (reply) {
-					write_post(http, reply, 1, post_render_flags);
+					print_post(http, reply, 1, post_render_flags);
 					reply = post_next_post(reply);
 				}
-				HTTP_WRITE("</div>");
+				PRINT(S("</div>"));
 			}
 
-			HTTP_WRITE("<div class='clear'></div>");
+			PRINT(S("<div class='clear'></div>"));
 
 		}
 		thread = thread_next_thread(thread);
 		++i;
 		if (thread && i>range_start && i<range_end)
-			HTTP_WRITE("<hr>");
+			PRINT(S("<hr>"));
 	}
 
-	HTTP_WRITE("<div class='clear'></div>");
+	PRINT(S("<div class='clear'></div>"
+	        "<hr>"
+	        "<input type='hidden' name='redirect' value='"), S(PREFIX), S("/"), E(board_name(board)), S("/'>"));
 
-	HTTP_WRITE("<hr>");
+	print_mod_bar(http, is_mod_for_board(page->user, board));
 
+	PRINT(S("</form><hr>"));
 
-	HTTP_WRITE("<input type='hidden' name='redirect' value='" PREFIX "/");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/'>");
+	print_board_nav(http, board, page->page);
 
-	write_mod_bar(http, is_mod_for_board(page->user, board));
-	HTTP_WRITE("</form><hr>");
+	print_bottom_bar(http);
 
-	write_board_nav(http, board, page->page);
-
-	write_bottom_bar(http);
-
-	write_page_footer(http);
-
+	print_page_footer(http);
 
 	HTTP_EOF();
 }

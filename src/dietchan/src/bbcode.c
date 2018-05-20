@@ -44,29 +44,14 @@ static size_t scan_tag(const char *s, const char **tag, int *open)
 
 void write_bbcode_tag(http_context *http, const char *tag, int open)
 {
-	if (tag == "spoiler") {
-		if (open)
-			HTTP_WRITE("<span class='spoiler'>");
-		else
-			HTTP_WRITE("</span>");
-	} else if (tag == "code") {
-		if (open)
-			HTTP_WRITE("<pre>");
-		else
-			HTTP_WRITE("</pre>");
-	} else if (tag == "q") {
-		if (open)
-			HTTP_WRITE("<span class='quote'>");
-		else
-			HTTP_WRITE("</span>");
-	} else {
-		if (open)
-			HTTP_WRITE("<");
-		else
-			HTTP_WRITE("</");
-		HTTP_WRITE(tag);
-		HTTP_WRITE(">");
-	}
+	if (tag == "spoiler")
+		PRINT(open?S("<span class='spoiler'>"):S("</span>"));
+	else if (tag == "code")
+		PRINT(open?S("<pre>"):S("</pre>"));
+	else if (tag == "q")
+		PRINT(open?S("<span class='quote'>"):S("</span>"));
+	else
+		PRINT(open?S("<"):S("</"), S(tag), S(">"));
 }
 
 void write_bbcode(http_context *http, const char *s, struct thread *current_thread)
@@ -148,7 +133,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               break;
 			           }
 			           CLOSE_TAG("q", 0);
-			           HTTP_WRITE("<br>");
+			           PRINT(S("<br>"));
 			           ++ss;
 			           break;
 			case '>':  if (code) {
@@ -161,11 +146,11 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               // Reference to a post
 			               struct post *post=find_post_by_id(post_id);
 			               if (post) {
-			                   HTTP_WRITE("<a href='");
-			                   write_post_url(http, post, post_thread(post) != current_thread);
-			                   HTTP_WRITE("'>");
+			                   PRINT(S("<a href='"));
+			                   print_post_url(http, post, post_thread(post) != current_thread);
+			                   PRINT(S("'>"));
 			                   WRITE_ESCAPED(2+i);
-			                   HTTP_WRITE("</a>");
+			                   PRINT(S("</a>"));
 			                   ss += 2+i;
 			               } else {
 			                   WRITE_ESCAPED(2+i);

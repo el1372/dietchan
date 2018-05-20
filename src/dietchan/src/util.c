@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <alloca.h>
 #include <libowfat/str.h>
+#include <libowfat/fmt.h>
 #include <libowfat/scan.h>
 #include "arc4random.h"
 
@@ -168,4 +169,64 @@ const char *crypt_password(const char *plain_pw)
 	salt[sizeof(salt)-1] = '\0';
 
 	return crypt(plain_pw, salt);
+}
+
+size_t fmt_escape(char *buf, const char *unescaped)
+{
+	size_t escaped_length = 0;
+	const char *c;
+	if (!buf) {
+		for (c = unescaped; *c != '\0'; ++c) {
+			escaped_length += html_escape_char(FMT_LEN, *c);
+		}
+	} else {
+		char *o = buf;
+		for (c = unescaped; *c != '\0'; ++c) {
+			size_t d = html_escape_char(o, *c);
+			o += d;
+			escaped_length += d;
+		}
+	}
+	return escaped_length;
+}
+
+size_t fmt_escapen(char *buf, const char *unescaped, size_t n)
+{
+	size_t escaped_length = 0;
+	const char *c;
+	if (!buf) {
+		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
+			escaped_length += html_escape_char(FMT_LEN, *c);
+		}
+	} else {
+		char *o = buf;
+		for (c = unescaped; (*c != '\0') && ((c-unescaped) < n); ++c) {
+			size_t d = html_escape_char(o, *c);
+			o += d;
+			escaped_length += d;
+		}
+	}
+	return escaped_length;
+}
+
+size_t fmt_time(char *out, uint64 ms)
+{
+	uint64 t = ms;
+	/*uint64 msecs  = t % 1000;*/ t /= 1000;
+	uint64 secs   = t % 60;   t /= 60;
+	uint64 mins   = t % 60;   t /= 60;
+	uint64 hours  = t;
+
+	char *o = out;
+	if (hours > 0) {
+		o += fmt_int(out?o:FMT_LEN, hours);
+		if (out) *o = ':';
+		++o;
+	}
+	o += fmt_uint0(out?o:FMT_LEN, mins, (hours>0)?2:1);
+	if (out) *o = ':';
+	++o;
+	o += fmt_uint0(out?o:FMT_LEN, secs, 2);
+
+	return o-out;
 }

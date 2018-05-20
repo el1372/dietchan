@@ -18,4 +18,30 @@ void generate_random_string(char *output, size_t length, const char *charset);
 int check_password(const char *crypted_pw, const char *input);
 const char *crypt_password(const char *plain_pw);
 
+size_t fmt_time(char *out, uint64 ms);
+size_t fmt_escape(char *buf, const char *unescaped);
+size_t fmt_escapen(char *buf, const char *unescaped, size_t n);
+
+#define FMT_ESC_HTML_CHAR 6
+
+static inline size_t html_escape_char(char *output, char character)
+{
+	const char *entity;
+	switch (character) {
+		case '&':  entity = "&amp;";  break;
+ 		case '<':  entity = "&lt;";   break;
+ 		case '>':  entity = "&gt;";   break;
+ 		case '"':  entity = "&quot;"; break;
+ 		case '\'': entity = "&#x27;"; break;
+ 		case '/':  entity = "&#x2F;"; break;
+ 		default:
+ 			if (output)
+ 				*output = character;
+ 			return 1;
+	}
+	if (output)
+		strncpy(output, entity, strlen(entity));
+	return strlen(entity);
+}
+
 #endif // UTIL_H

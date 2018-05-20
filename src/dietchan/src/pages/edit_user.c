@@ -95,47 +95,30 @@ static void edit_user_page_print_form(http_context *http)
 {
 	struct edit_user_page *page = (struct edit_user_page*)http->info;
 
-	if (case_equals(page->action, "add"))
-		HTTP_WRITE("<h2>Benutzer hinzufügen</h2>");
-	else
-		HTTP_WRITE("<h2>Benutzer bearbeiten</h2>");
-
-	if (user_id(page->user) == page->user_id)
-		HTTP_WRITE("<p><span class='warning'>Achtung! Du bearbeitest dein eigenes Benutzerkonto</span></p>");
-
-	HTTP_WRITE("<form method='post'>"
-	           "<input type='hidden' name='action' value='");
-	HTTP_WRITE_ESCAPED(page->action);
-	HTTP_WRITE("'>"
-	           "<input type='hidden' name='submitted' value='1'>"
-	           "<input type='hidden' name='user_id' value='");
-	HTTP_WRITE_LONG(page->user_id);
-	HTTP_WRITE("'>"
+	PRINT(S("<h2>"), case_equals(page->action, "add")?S("Benutzer hinzufügen"): S("Benutzer bearbeiten"), S("</h2>"),
+	      (user_id(page->user) == page->user_id)?
+	        S("<p><span class='warning'>Achtung! Du bearbeitest dein eigenes Benutzerkonto</span></p>"):S(""),
+	      S("<form method='post'>"
+	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
+	          "<input type='hidden' name='submitted' value='1'>"
+	          "<input type='hidden' name='user_id' value='"), L(page->user_id), S("'>"
 	           "<p><table>"
 	             "<tr>"
 	               "<th><label for='user_name'>Name: </label></th>"
-	               "<td><input type='text' name='user_name' value='");
-	HTTP_WRITE_ESCAPED(page->user_name);
-	HTTP_WRITE(         "' required");
-	if (!can_edit_everything(page))
-		HTTP_WRITE(     " disabled");
-	HTTP_WRITE(         "></td>"
+	               "<td><input type='text' name='user_name' value='"), E(page->user_name), S("' required"),
+	               (!can_edit_everything(page))?S(" disabled"):S(""), S("></td>"
 	             "</tr><tr>"
 	               "<th><label for='user_type'>Rolle: </label></th>"
-	               "<td><select name='user_type' required");
-	if (!can_edit_everything(page))
-		HTTP_WRITE(    " disabled");
-	HTTP_WRITE(        ">"
-	                     "<option value='mod'>Mod</option>"
-	                     "<option value='admin'");
-	if (page->user_type == USER_ADMIN) HTTP_WRITE(" selected");
-	HTTP_WRITE(          ">Admin</option>"
+	               "<td><select name='user_type' required"),
+	               (!can_edit_everything(page))?S(" disabled"):S(""), S(">"
+	                     "<option value='mod'"),   (page->user_type == USER_MOD)?S(" selected"):S(""),   S(">Mod</option>"
+	                     "<option value='admin'"), (page->user_type == USER_ADMIN)?S(" selected"):S(""), S(">Admin</option>"
 	                   "</select></td>"
 	             "</tr><tr>"
 	               "<th><label for='boards'>Bretter: </label></th>"
-	               "<td><input type='text' name='boards' value='");
+	               "<td><input type='text' name='boards' value='"));;
 	if (page->boards) {
-		HTTP_WRITE_ESCAPED(page->boards);
+		PRINT(E(page->boards));
 	} else {
 		struct user *edited_user = find_user_by_id(page->user_id);
 		if (edited_user) {
@@ -143,55 +126,40 @@ static void edit_user_page_print_form(http_context *http)
 			if (bids) {
 				for (int i=0; bids[i] != -1; ++i) {
 					struct board *b = find_board_by_id(bids[i]);
-					if (b) {
-						HTTP_WRITE_ESCAPED(board_name(b));
-						HTTP_WRITE(" ");
-					}
+					if (b)
+						PRINT(E(board_name(b)), S(" "));
 				}
 			}
 		}
 	}
-	HTTP_WRITE(    "'");
-	if (!can_edit_everything(page))
-		HTTP_WRITE(" disabled");
-	HTTP_WRITE(    "></td>"
+	PRINT(S(       "'"), (!can_edit_everything(page))?S(" disabled"):S(""), S("></td>"
 	             "</tr><tr>"
 	               "<th><label for='user_email'>E-Mail: </label></th>"
-	               "<td><input type='text' name='user_email' value='");
-	HTTP_WRITE_ESCAPED(page->user_email);
-	HTTP_WRITE(    "' optional></td>"
+	               "<td><input type='text' name='user_email' value='"), E(page->user_email), S("' optional></td>"
 	             "</tr></tr>"
 	               "<th><label for='user_password'>Passwort: </label></th>"
-	               "<td><input type='password' name='user_password' value='");
-	HTTP_WRITE_ESCAPED(page->user_password);
-	HTTP_WRITE(        "'");
-	if (case_equals(page->action, "add"))
-		HTTP_WRITE(    " required");
-	HTTP_WRITE(        "></td>"
+	               "<td><input type='password' name='user_password' value='"), E(page->user_password), S("'"),
+	               (case_equals(page->action, "add"))?S(" required"):S(""), S("></td>"
 	             "</tr><tr>"
 	               "<th><label for='user_password_confirm'>Bestätigen: </label></th>"
-	               "<td><input type='password' name='user_password_confirm' value='");
-	HTTP_WRITE_ESCAPED(page->user_password_confirm);
-	HTTP_WRITE(        "'");
-	if (case_equals(page->action, "add"))
-		HTTP_WRITE(    " required");
-	HTTP_WRITE(        "></td>"
+	               "<td><input type='password' name='user_password_confirm' value='"), E(page->user_password_confirm), S("'"),
+	               (case_equals(page->action, "add"))?S(" required"):S(""), S("></td>"
 	             "</tr>"
 	           "</table></p>"
-	           "<p><input type='submit' value='Übernehmen'></p></form>");
+	           "<p><input type='submit' value='Übernehmen'></p></form>"));
 }
 
 static void edit_user_page_print_confirmation(http_context *http)
 {
 	struct edit_user_page *page = (struct edit_user_page*)http->info;
 	struct user *user = find_user_by_id(page->user_id);
-	HTTP_WRITE("<form method='post'>"
-	           "<input type='hidden' name='user_id' value='");
-	HTTP_WRITE_LONG(page->user_id);
-	HTTP_WRITE("'><p><label><input type='checkbox' name='confirmed' value='1'>Benutzer '");
-	HTTP_WRITE_ESCAPED(user_name(user));
-	HTTP_WRITE("' wirklich löschen.</label></p>"
-	           "<p><input type='submit' value='Löschen'></p></form>");
+	PRINT(S("<form method='post'>"
+	          "<input type='hidden' name='user_id' value='"), L(page->user_id), S("'>"
+	          "<p><label>"
+	            "<input type='checkbox' name='confirmed' value='1'>"
+	            "Benutzer '"), E(user_name(user)),S("' wirklich löschen."
+	          "</label></p>"
+	          "<p><input type='submit' value='Löschen'></p></form>"));
 }
 
 static int edit_user_page_finish (http_context *http)
@@ -203,10 +171,10 @@ static int edit_user_page_finish (http_context *http)
 	if (!page->user ||
 	    !(user_type(page->user) == USER_ADMIN ||
 		  user_id(page->user) == page->user_id)) {
-		HTTP_STATUS_HTML("403 Verboten");
+		PRINT_STATUS_HTML("403 Verboten");
 		HTTP_WRITE_SESSION();
-		HTTP_WRITE("<h1>403 Verboten</h1>"
-		           "Du kommst hier nid rein.");
+		PRINT(S("<h1>403 Verboten</h1>"
+		        "Du kommst hier nid rein."));
 		HTTP_EOF();
 		return 0;
 	}
@@ -234,11 +202,11 @@ static int edit_user_page_finish (http_context *http)
 	    case_equals(page->action, "delete")) {
 
 	    if (!user) {
-			HTTP_STATUS_HTML("404 Not Found");
+			PRINT_STATUS_HTML("404 Not Found");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			write_dashboard_header(http, 0);
-			HTTP_WRITE("<span class='error'>Benutzer existiert nicht.</span>");
+			PRINT_BODY();
+			write_dashboard_header(http, user_id(page->user));
+			PRINT(S("<span class='error'>Benutzer existiert nicht.</span>"));
 			write_dashboard_footer(http);
 			return 0;
 	    }
@@ -246,10 +214,10 @@ static int edit_user_page_finish (http_context *http)
 
 	if (case_equals(page->action, "delete")) {
 		if (user == page->user) {
-			HTTP_STATUS_HTML("403 Verboten");
+			PRINT_STATUS_HTML("403 Verboten");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			HTTP_WRITE("<p>Du kannst dein eigenes Benutzerkonto nicht löschen.</p>");
+			PRINT_BODY();
+			PRINT(S("<p>Du kannst dein eigenes Benutzerkonto nicht löschen.</p>"));
 			HTTP_EOF();
 			return 0;
 		}
@@ -263,35 +231,34 @@ static int edit_user_page_finish (http_context *http)
 
 			#define ERROR_HEADER() \
 				if (!error_header_sent) { \
-					HTTP_STATUS_HTML("400 Bad Request"); \
+					PRINT_STATUS_HTML("400 Bad Request"); \
 					HTTP_WRITE_SESSION(); \
-					HTTP_BODY(); \
+					PRINT_BODY(); \
 					write_dashboard_header(http, 0); \
 					error_header_sent = 1; \
 				}
 
 			if (str_equal(page->user_name, "")) {
 				ERROR_HEADER();
-				HTTP_WRITE("<p class='error'>Bitte User-Namen eingeben</p>");
+				PRINT(S("<p class='error'>Bitte User-Namen eingeben</p>"));
 			}
 
 			if (case_equals(page->action, "add")) {
 				if (str_equal(page->user_password, "")) {
 					ERROR_HEADER();
-					HTTP_WRITE("<p class='error'>Bitte Passwort eingeben</p>");
+					PRINT(S("<p class='error'>Bitte Passwort eingeben</p>"));
 				}
 			}
 
 			if (!str_equal(page->user_password, page->user_password_confirm)) {
 				ERROR_HEADER();
-				HTTP_WRITE("<p class='error'>Passwörter stimmen nicht überein.</p>");
+				PRINT(S("<p class='error'>Passwörter stimmen nicht überein.</p>"));
 			}
 
 			if (find_user_by_name(page->user_name) != user) {
 				ERROR_HEADER();
-				HTTP_WRITE("<p class='error'>Ein Benutzer mit dem Namen '");
-				HTTP_WRITE_ESCAPED(page->user_name);
-				HTTP_WRITE("' existiert bereits. Bitte einen anderen Namen eingeben.</p>");
+				PRINT(S("<p class='error'>Ein Benutzer mit dem Namen '"), E(page->user_name),
+				      S("' existiert bereits. Bitte einen anderen Namen eingeben.</p>"));
 			}
 
 			if (page->boards) {
@@ -316,9 +283,9 @@ static int edit_user_page_finish (http_context *http)
 
 	if (case_equals(page->action, "delete")) {
 		if (!page->confirmed) {
-			HTTP_STATUS_HTML("200 OK");
+			PRINT_STATUS_HTML("200 OK");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
+			PRINT_BODY();
 			write_dashboard_header(http, 0);
 			edit_user_page_print_confirmation(http);
 			write_dashboard_footer(http);
@@ -330,9 +297,9 @@ static int edit_user_page_finish (http_context *http)
 	if (case_equals(page->action, "add") ||
 	    case_equals(page->action, "edit")) {
 		if (!page->submitted) {
-			HTTP_STATUS_HTML("200 OK");
+			PRINT_STATUS_HTML("200 OK");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
+			PRINT_BODY();
 			write_dashboard_header(http, 0);
 			edit_user_page_print_form(http);
 			write_dashboard_footer(http);
@@ -410,7 +377,8 @@ static int edit_user_page_finish (http_context *http)
 	}
 
 
-	HTTP_REDIRECT("302 Found", PREFIX "/dashboard");
+	PRINT_REDIRECT("302 Found",
+	               S(PREFIX), S("/dashboard"));
 
 }
 

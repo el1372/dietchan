@@ -9,7 +9,7 @@
 // -- Server stuff --
 // The virtual "directory" in which the imageboard resides.
 // E.g. if it should appear in http://example.com/foo/bar/, then the prefix is /foo/bar
-#define PREFIX                           ""
+#define PREFIX                      "/test"
 // The path where uploads and static content are stored. Not visible to the public (although the content is).
 #define DOC_ROOT                    "./www"
 
@@ -41,6 +41,7 @@
 #define POST_MAX_BODY_LENGTH          10000
 #define POST_MAX_SUBJECT_LENGTH         100
 #define POST_MAX_NAME_LENGTH            100
+#define DEFAULT_NAME                "Felix"
 
 // -- Uploads --
 // Maximum filename length of an uploaded file

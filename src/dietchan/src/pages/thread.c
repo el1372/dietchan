@@ -8,6 +8,7 @@
 #include <libowfat/scan.h>
 
 #include "../page.h"
+#include "../tpl.h"
 #include "../persistence.h"
 #include "../captcha.h"
 
@@ -93,11 +94,9 @@ static void write_thread_nav(http_context *http, struct thread *thread)
 {
 	struct board *board = thread_board(thread);
 
-	HTTP_WRITE("<div class='thread-nav'>");
-	HTTP_WRITE("<a href='" PREFIX "/");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/'>[Zurück]</a>");
-	HTTP_WRITE("</div>");
+	PRINT(S("<div class='thread-nav'>"
+	          "<a href='"), S(PREFIX), S("/"), E(board_name(board)), S("/'>[Zurück]</a>"
+	        "</div>"));
 }
 
 static int thread_page_finish (http_context *http)
@@ -106,11 +105,11 @@ static int thread_page_finish (http_context *http)
 
 	struct board *board = find_board_by_name(page->board);
 	if (!board) {
-		HTTP_STATUS_HTML("404 Not Found");
+		PRINT_STATUS_HTML("404 Not Found");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>404</h1>"
-		           "<p>Das Brett wurde nicht gefunden :(.<p>");
+		PRINT_BODY();
+		PRINT(S("<h1>404</h1>"
+		        "<p>Das Brett wurde nicht gefunden :(.<p>"));
 		HTTP_EOF();
 		return 0;
 	}
@@ -122,31 +121,25 @@ static int thread_page_finish (http_context *http)
 	struct thread *thread = find_thread_by_id(page->thread_id);
 
 	if (!thread || thread_board(thread) != board) {
-		HTTP_STATUS_HTML("404 Not Found");
+		PRINT_STATUS_HTML("404 Not Found");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>404</h1>"
-		           "<p>Faden existiert nicht :(.<p>");
+		PRINT_BODY();
+		PRINT(S("<h1>404</h1>"
+		        "<p>Faden existiert nicht :(.<p>"));
 		HTTP_EOF();
 		return 0;
 	}
 
-	HTTP_STATUS_HTML("200 OK");
+	PRINT_STATUS_HTML("200 OK");
 	HTTP_WRITE_SESSION();
-	HTTP_BODY();
+	PRINT_BODY();
 
-	write_page_header(http);
+	print_page_header(http);
 
-	write_top_bar(http, page->user, page->url);
+	print_top_bar(http, page->user, page->url);
 
-	HTTP_WRITE("<h1>/");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/ – ");
-	HTTP_WRITE_ESCAPED(board_title(board));
-	HTTP_WRITE("</h1>");
-
-
-	HTTP_WRITE("<hr>");
+	PRINT(S("<h1>/"),E(board_name(board)),S("/ – "),E(board_title(board)),S("</h1>"
+	      "<hr>"));
 
 	struct captcha *captcha = 0;
 	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
@@ -154,46 +147,40 @@ static int thread_page_finish (http_context *http)
 		captcha = random_captcha();
 	}
 
-	write_reply_form(http, board_id(board), page->thread_id, captcha);
+	print_reply_form(http, board_id(board), page->thread_id, captcha);
 
 	write_thread_nav(http, thread);
 
-	HTTP_WRITE("<hr>");
+	PRINT(S("<hr>"));
 
 	struct post *post = thread_first_post(thread);
 
-	HTTP_WRITE("<form action='" PREFIX "/mod' method='post'>"
-	           "<div class='thread'>");
-	write_post(http, post, 0, post_render_flags);
-	HTTP_WRITE(    "<div class='replies'>");
+	PRINT(S("<form action='"),S(PREFIX), S("/mod' method='post'>"
+	        "<div class='thread'>"));
+	print_post(http, post, 0, post_render_flags);
+	PRINT(S(  "<div class='replies'>"));
 	post = post_next_post(post);
 
 	while (post) {
-		write_post(http, post, 0, post_render_flags);
+		print_post(http, post, 0, post_render_flags);
 
 		post = post_next_post(post);
 	}
-	HTTP_WRITE("</div></div>");
-	HTTP_WRITE("<div class='clear'></div>");
+	PRINT(S(  "</div>"
+	        "</div>"
+	        "<div class='clear'></div>"
+	        "<hr>"
+	        "<input type='hidden' name='redirect' value='"),
+	          S(PREFIX), S("/"), E(board_name(board)), S("/"), UL(post_id(thread_first_post(thread))), S("'>"));
 
-
-	HTTP_WRITE("<hr>");
-
-	HTTP_WRITE("<input type='hidden' name='redirect' value='" PREFIX "/");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/");
-	HTTP_WRITE_ULONG(post_id(thread_first_post(thread)));
-	HTTP_WRITE("'>");
-
-	write_mod_bar(http, is_mod_for_board(page->user, board));
-	HTTP_WRITE("</form><hr>");
+	print_mod_bar(http, is_mod_for_board(page->user, board));
+	PRINT(S("</form><hr>"));
 
 	write_thread_nav(http, thread);
 
-	write_bottom_bar(http);
+	print_bottom_bar(http);
 
-	write_page_footer(http);
-
+	print_page_footer(http);
 
 	HTTP_EOF();
 }

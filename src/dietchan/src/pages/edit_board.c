@@ -6,6 +6,8 @@
 
 #include "../page.h"
 #include "../util.h"
+#include "../tpl.h"
+#include "dashboard.h"
 
 static int  edit_board_page_get_param (http_context *http, char *key, char *val);
 static int  edit_board_page_post_param (http_context *http, char *key, char *val);
@@ -67,47 +69,35 @@ static void edit_board_page_print_form(http_context *http)
 {
 	struct edit_board_page *page = (struct edit_board_page*)http->info;
 
-	if (case_equals(page->action, "add"))
-		HTTP_WRITE("<h2>Brett hinzufügen</h2>");
-	else
-		HTTP_WRITE("<h2>Brett bearbeiten</h2>");
-
-	HTTP_WRITE("<form method='post'>"
-	           "<input type='hidden' name='action' value='");
-	HTTP_WRITE_ESCAPED(page->action);
-	HTTP_WRITE("'>"
+	PRINT(S("<h2>"), case_equals(page->action, "add")?S("Brett hinzufügen"):S("Brett bearbeiten"), S("</h2>"
+	        "<form method='post'>"
+	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
 	           "<input type='hidden' name='submitted' value='1'>"
-	           "<input type='hidden' name='board_id' value='");
-	HTTP_WRITE_LONG(page->board_id);
-	HTTP_WRITE("'>"
+	           "<input type='hidden' name='board_id' value='"), L(page->board_id), S("'>"
 	           "<p><table>"
 	           "<tr>"
 	             "<th><label for='board_name'>Name (URL): </label></th>"
-	             "<td><input type='text' name='board_name' value='");
-	HTTP_WRITE_ESCAPED(page->board_name);
-	HTTP_WRITE(        "' required></td>"
+	             "<td><input type='text' name='board_name' value='"), E(page->board_name), S("' required></td>"
 	           "</tr><tr>"
 	             "<th><label for='board_title'>Titel: </label></th>"
-	             "<td><input type='text' name='board_title' value='");
-	HTTP_WRITE_ESCAPED(page->board_title);
-	HTTP_WRITE(        "'></td>"
+	             "<td><input type='text' name='board_title' value='"), E(page->board_title), S("'></td>"
 	             "</tr>"
 	           "</table></p>"
 	           "<p><input type='submit' value='Übernehmen'></p>"
-	           "</form>");
+	         "</form>"));
 }
 
 static void edit_board_page_print_confirmation(http_context *http)
 {
 	struct edit_board_page *page = (struct edit_board_page*)http->info;
 	struct board *board = find_board_by_id(page->board_id);
-	HTTP_WRITE("<form method='post'>"
-	           "<input type='hidden' name='board_id' value='");
-	HTTP_WRITE_LONG(page->board_id);
-	HTTP_WRITE("'><p><label><input type='checkbox' name='confirmed' value='1'>Brett /");
-	HTTP_WRITE_ESCAPED(board_name(board));
-	HTTP_WRITE("/ wirklich löschen.</label></p>"
-	           "<p><input type='submit' value='Löschen'></p></form>");
+	PRINT(S("<form method='post'>"
+	        "<input type='hidden' name='board_id' value='"), L(page->board_id), S("'>"
+	        "<p><label>"
+	             "<input type='checkbox' name='confirmed' value='1'>"
+	             "Brett /"), E(board_name(board)), S("/ wirklich löschen."
+	        "</label></p>"
+	        "<p><input type='submit' value='Löschen'></p></form>"));
 }
 
 static int edit_board_page_finish (http_context *http)
@@ -117,10 +107,11 @@ static int edit_board_page_finish (http_context *http)
 	// Check permission
 
 	if (!page->user || user_type(page->user) != USER_ADMIN) {
-		HTTP_STATUS_HTML("403 Verboten");
+		PRINT_STATUS_HTML("403 Verboten");
 		HTTP_WRITE_SESSION();
-		HTTP_WRITE("<h1>403 Verboten</h1>"
-		           "Du kommst hier nid rein.");
+		PRINT_BODY();
+		PRINT(S("<h1>403 Verboten</h1>"
+		        "Du kommst hier nid rein."));
 		HTTP_EOF();
 		return 0;
 	}
@@ -138,11 +129,11 @@ static int edit_board_page_finish (http_context *http)
 	    case_equals(page->action, "move")) {
 
 		if (!board) {
-			HTTP_STATUS_HTML("404 Not Found");
+			PRINT_STATUS_HTML("404 Not Found");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			write_dashboard_header(http);
-			HTTP_WRITE("<span class='error'>Brett existiert nicht.</span>");
+			PRINT_BODY();
+			write_dashboard_header(http,0);
+			PRINT(S("<span class='error'>Brett existiert nicht.</span>"));
 			write_dashboard_footer(http);
 			return 0;
 		}
@@ -153,11 +144,11 @@ static int edit_board_page_finish (http_context *http)
 		    case_equals(page->action, "add")) {
 
 			if (str_equal(page->board_name, "")) {
-				HTTP_STATUS_HTML("400 Bad Request");
+				PRINT_STATUS_HTML("400 Bad Request");
 				HTTP_WRITE_SESSION();
-				HTTP_BODY();
-				write_dashboard_header(http);
-				HTTP_WRITE("<p class='error'>Bitte Brett-Namen eingeben</p>");
+				PRINT_BODY();
+				write_dashboard_header(http,user_id(page->user));
+				PRINT(S("<p class='error'>Bitte Brett-Namen eingeben</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
 				HTTP_EOF();
@@ -165,13 +156,12 @@ static int edit_board_page_finish (http_context *http)
 			}
 
 			if (find_board_by_name(page->board_name) != board) {
-				HTTP_STATUS_HTML("400 Bad Request");
+				PRINT_STATUS_HTML("400 Bad Request");
 				HTTP_WRITE_SESSION();
-				HTTP_BODY();
-				write_dashboard_header(http);
-				HTTP_WRITE("<p class='error'>Ein Brett mit dem Namen '");
-				HTTP_WRITE_ESCAPED(page->board_name);
-				HTTP_WRITE("' existiert bereits. Bitte einen anderen Namen eingeben.</p>");
+				PRINT_BODY();
+				write_dashboard_header(http, user_id(page->user));
+				PRINT(S("<p class='error'>Ein Brett mit dem Namen '"), E(page->board_name),
+				      S("' existiert bereits. Bitte einen anderen Namen eingeben.</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
 				HTTP_EOF();
@@ -182,10 +172,10 @@ static int edit_board_page_finish (http_context *http)
 
 	if (case_equals(page->action, "delete")) {
 		if (!page->confirmed) {
-			HTTP_STATUS_HTML("200 OK");
+			PRINT_STATUS_HTML("200 OK");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			write_dashboard_header(http);
+			PRINT_BODY();
+			write_dashboard_header(http, user_id(page->user));
 			edit_board_page_print_confirmation(http);
 			write_dashboard_footer(http);
 			HTTP_EOF();
@@ -196,10 +186,10 @@ static int edit_board_page_finish (http_context *http)
 	if (case_equals(page->action, "add") ||
 	    case_equals(page->action, "edit")) {
 		if (!page->submitted) {
-			HTTP_STATUS_HTML("200 OK");
+			PRINT_STATUS_HTML("200 OK");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			write_dashboard_header(http);
+			PRINT_BODY();
+			write_dashboard_header(http, user_id(page->user));
 			edit_board_page_print_form(http);
 			write_dashboard_footer(http);
 			HTTP_EOF();
@@ -208,7 +198,6 @@ static int edit_board_page_finish (http_context *http)
 	}
 
 	// Execute
-
 
 	if (case_equals(page->action, "add")) {
 
@@ -273,8 +262,7 @@ static int edit_board_page_finish (http_context *http)
 		commit();
 	}
 
-
-	HTTP_REDIRECT("302 Found", PREFIX "/dashboard");
+	PRINT_REDIRECT("302 Found", (S(PREFIX), S("/dashboard")));
 }
 
 static void edit_board_page_finalize(http_context *http)

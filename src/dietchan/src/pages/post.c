@@ -189,15 +189,11 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 		// This check must be in file_content instead of file_begin because in file_begin
 		// we don't know whether the field is actually empty or not.
 
-		HTTP_STATUS_HTML("413 Too many files");
+		PRINT_STATUS_HTML("413 Too many files");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Error</h1>"
-		           "<p>You may only attach up to ");
-		HTTP_WRITE_LONG(MAX_FILES_PER_POST);
-		HTTP_WRITE_ESCAPED(buf);
-		HTTP_WRITE(" files.</p>");
-
+		PRINT_BODY();
+		PRINT(S("<h1>Error</h1>"
+		        "<p>You may only attach up to "), L(MAX_FILES_PER_POST), S(" files.</p>"));
 		HTTP_EOF();
 
 		upload_job_abort(page->current_upload_job);
@@ -209,16 +205,12 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 	}
 
 	if (page->current_upload_job->size+length > MAX_UPLOAD_SIZE) {
-		HTTP_STATUS_HTML("413 File too large");
+		PRINT_STATUS_HTML("413 File too large");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Error</h1>"
-		           "<p>The file ");
-		HTTP_WRITE_ESCAPED(page->current_upload_job->original_name);
-		HTTP_WRITE_HUMANK(MAX_UPLOAD_SIZE);
-		HTTP_WRITE(" is larger than the allowed maximum of ");
-		HTTP_WRITE_ESCAPED(buf);
-		HTTP_WRITE("B.");
+		PRINT_BODY();
+		PRINT(S("<h1>Error</h1>"
+		        "<p>The file "), E(page->current_upload_job->original_name), S(
+		        " is larger than the allowed maximum of "), HK(MAX_UPLOAD_SIZE), S("B."));
 
 		HTTP_EOF();
 
@@ -269,15 +261,12 @@ static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_
 	struct post_page *page = (struct post_page*)http->info;
 
 	if (!is_mime_allowed(mime_type)) {
-	    HTTP_STATUS_HTML("415 Unsupported media type");
+	    PRINT_STATUS_HTML("415 Unsupported media type");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Error</h1>"
-		           "<p>Unsupported mime type: ");
-		HTTP_WRITE_ESCAPED(mime_type);
-		HTTP_WRITE("<br>");
-		HTTP_WRITE_ESCAPED(upload_job->original_name);
-		HTTP_WRITE("</p>");
+		PRINT_BODY();
+		PRINT(S("<h1>Error</h1>"
+		        "<p>Unsupported mime type: "), E(mime_type), S("<br>"),
+		        E(upload_job->original_name), S("</p>"));
 
 		HTTP_EOF();
 		upload_job_abort(upload_job);
@@ -286,17 +275,13 @@ static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_
 
 	const char *original_ext = strrchr(upload_job->original_name, '.');
 	if (!is_valid_extension(mime_type, original_ext)) {
-	    HTTP_STATUS_HTML("415 Unsupported media type");
+	    PRINT_STATUS_HTML("415 Unsupported media type");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Error</h1>"
-		           "<p>Invalid file extension '");
-		HTTP_WRITE_ESCAPED(original_ext?original_ext:"");
-		HTTP_WRITE("' for mime type '");
-		HTTP_WRITE_ESCAPED(mime_type);
-		HTTP_WRITE("'<br>");
-		HTTP_WRITE_ESCAPED(upload_job->original_name);
-		HTTP_WRITE("</p>");
+		PRINT_BODY();
+		PRINT(S("<h1>Error</h1>"
+		        "<p>Invalid file extension '"),original_ext?E(original_ext):S(""),
+		      S("' for mime type '"), E(mime_type), S("'<br>"),
+		      E(upload_job->original_name), S("</p>"));
 
 		HTTP_EOF();
 		upload_job_abort(upload_job);
@@ -323,15 +308,11 @@ static void post_page_upload_job_error(struct upload_job *upload_job, int status
 
 	// We could have more than one error, but we can only handle the first one.
 	if (!page->aborted) {
-		HTTP_STATUS_HTML("500 Internal Server Error");
+		PRINT_STATUS_HTML("500 Internal Server Error");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Error</h1>"
-		           "<p>Could not process file: ");
-		HTTP_WRITE_ESCAPED(upload_job->original_name);
-		HTTP_WRITE("<br>Corrupt file?"
-		           "</p>");
-
+		PRINT_BODY();
+		PRINT(S("<h1>Error</h1>"
+		        "<p>Could not process file: "), E(upload_job->original_name), S("<br>Corrupt file?</p>"));
 		HTTP_EOF();
 	}
 	upload_job_abort(upload_job);
@@ -361,10 +342,10 @@ static int post_page_finish (http_context *http)
 			struct upload_job *upload_job = array_get(&page->upload_jobs, sizeof(struct upload_job), i);
 			upload_job_abort(upload_job);
 		}
-		HTTP_STATUS_HTML("200 OK");
+		PRINT_STATUS_HTML("200 OK");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Hello Robot :)</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Hello Robot :)</h1>"));
 		HTTP_EOF();
 		return 0;
 	}
@@ -379,29 +360,29 @@ static int post_page_finish (http_context *http)
 	if (page->thread == -1) {
 		board = find_board_by_id(page->board);
 		if (!board) {
-			HTTP_STATUS_HTML("404 Gibbet nich");
+			PRINT_STATUS_HTML("404 Gibbet nich");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			HTTP_WRITE("<h1>Brett existiert nicht :(</h1>");
+			PRINT_BODY();
+			PRINT(S("<h1>Brett existiert nicht :(</h1>"));
 			HTTP_EOF();
 			return ERROR;
 		}
 	} else {
 		thread = find_thread_by_id(page->thread);
 		if (!thread) {
-			HTTP_STATUS_HTML("404 Gibbet nich");
+			PRINT_STATUS_HTML("404 Gibbet nich");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			HTTP_WRITE("<h1>Faden existiert nicht :(</h1>");
+			PRINT_BODY();
+			PRINT(S("<h1>Faden existiert nicht :(</h1>"));
 			HTTP_EOF();
 			return ERROR;
 		}
 
 		if (thread_closed(thread)) {
-			HTTP_STATUS_HTML("402 Verboten");
+			PRINT_STATUS_HTML("402 Verboten");
 			HTTP_WRITE_SESSION();
-			HTTP_BODY();
-			HTTP_WRITE("<h1>Faden geschlossen.</h1>");
+			PRINT_BODY();
+			PRINT(S("<h1>Faden geschlossen.</h1>"));
 			HTTP_EOF();
 			return ERROR;
 
@@ -416,7 +397,8 @@ static int post_page_finish (http_context *http)
 	                               board, BAN_TARGET_POST, is_banned);
 
 	if (banned) {
-		HTTP_REDIRECT("302 Found", PREFIX "/banned");
+		PRINT_REDIRECT("302 Found",
+		               S(PREFIX), S("/banned"));
 		return ERROR;
 	}
 
@@ -424,54 +406,48 @@ static int post_page_finish (http_context *http)
 	// Posts without text are okay, as long as they contain at least one file.
 	if ((!page->text || page->text[0] == '\0') &&
 	    !(page->thread != -1 && array_length(&page->upload_jobs, sizeof(struct upload_job)) > 0)) {
-	    HTTP_STATUS_HTML("400 Not okay");
+		PRINT_STATUS_HTML("400 Not okay");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Beitrag muss einen Text enthalten!</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Beitrag muss einen Text enthalten!</h1>"));
 		HTTP_EOF();
 		return ERROR;
 	}
 
 	// New threads must contain an image
 	if (page->thread == -1 && array_length(&page->upload_jobs, sizeof(struct upload_job)) <= 0) {
-	    HTTP_STATUS_HTML("400 Not okay");
+		PRINT_STATUS_HTML("400 Not okay");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Neuer Faden muss ein Bild enthalten.</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Neuer Faden muss ein Bild enthalten.</h1>"));
 		HTTP_EOF();
 		return ERROR;
 	}
 
 	// Length checks
 	if (strlen(page->text) > POST_MAX_BODY_LENGTH) {
-	    HTTP_STATUS_HTML("400 Not okay");
+		PRINT_STATUS_HTML("400 Not okay");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Beitrag ist zu lang! (maximal ");
-		HTTP_WRITE_LONG(POST_MAX_BODY_LENGTH);
-		HTTP_WRITE(" Zeichen)</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Beitrag ist zu lang! (maximal "), L(POST_MAX_BODY_LENGTH), S(" Zeichen)</h1>"));
 		HTTP_EOF();
 		return ERROR;
 	}
 
 	if (strlen(page->subject) > POST_MAX_SUBJECT_LENGTH) {
-	    HTTP_STATUS_HTML("400 Not okay");
+		PRINT_STATUS_HTML("400 Not okay");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Betreff ist zu lang! (maximal ");
-		HTTP_WRITE_LONG(POST_MAX_SUBJECT_LENGTH);
-		HTTP_WRITE(" Zeichen)</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Betreff ist zu lang! (maximal "), L(POST_MAX_SUBJECT_LENGTH), S(" Zeichen)</h1>"));
 		HTTP_EOF();
 		return ERROR;
 	}
 
 	if (strlen(page->username) > POST_MAX_NAME_LENGTH) {
-	    HTTP_STATUS_HTML("400 Not okay");
+		PRINT_STATUS_HTML("400 Not okay");
 		HTTP_WRITE_SESSION();
-		HTTP_BODY();
-		HTTP_WRITE("<h1>Name ist zu lang! (maximal ");
-		HTTP_WRITE_LONG(POST_MAX_NAME_LENGTH);
-		HTTP_WRITE(" Zeichen)</h1>");
+		PRINT_BODY();
+		PRINT(S("<h1>Name ist zu lang! (maximal "), L(POST_MAX_NAME_LENGTH), S(" Zeichen)</h1>"));
 		HTTP_EOF();
 		return ERROR;
 	}
@@ -483,11 +459,9 @@ static int post_page_finish (http_context *http)
 
 	if (flood) {
 		uint64 now = time(0);
-		HTTP_STATUS_HTML("403 Verboten");
-		HTTP_BODY();
-		HTTP_WRITE("<p>Flood protection: Du kannst den nächsten Beitrag erst in ");
-		HTTP_WRITE_ULONG(flood - now);
-		HTTP_WRITE(" Sekunden erstellen.</p>");
+		PRINT_STATUS_HTML("403 Verboten");
+		PRINT_BODY();
+		PRINT(S("<p>Flood protection: Du kannst den nächsten Beitrag erst in "), UL(flood - now), S(" Sekunden erstellen.</p>"));
 		HTTP_EOF();
 		return ERROR;
 	}
@@ -496,17 +470,17 @@ static int post_page_finish (http_context *http)
 	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
 	                    board, BAN_TARGET_POST, is_captcha_required)) {
 		if (!page->captcha || str_equal(page->captcha, "")) {
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Du hast das Captcha nicht eingegeben.</p>");
+			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_BODY();
+			PRINT(S("<p>Du hast das Captcha nicht eingegeben.</p>"));
 			HTTP_EOF();
 			return ERROR;
 		}
 		struct captcha *captcha = find_captcha_by_id(page->captcha_id);
 		if (!captcha || captcha_token(captcha) != page->captcha_token) {
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Captcha abgelaufen :(</p>");
+			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_BODY();
+			PRINT(S("<p>Captcha abgelaufen :(</p>"));
 			HTTP_EOF();
 			return ERROR;
 		}
@@ -515,9 +489,9 @@ static int post_page_finish (http_context *http)
 			replace_captcha(captcha);
 		else {
 			invalidate_captcha(captcha);
-			HTTP_STATUS_HTML("403 Verboten");
-			HTTP_BODY();
-			HTTP_WRITE("<p>Dein eingegebenes Captcha stimmt leider nicht :(</p>");
+			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_BODY();
+			PRINT(S("<p>Dein eingegebenes Captcha stimmt leider nicht :(</p>"));
 			HTTP_EOF();
 			return ERROR;
 		}
@@ -688,12 +662,12 @@ static int post_page_finish (http_context *http)
 	// 302 apparently confuses Chrome's password manager
 	//HTTP_STATUS("302 Success");
 	//HTTP_WRITE("Location: ");
-	HTTP_STATUS("200 Success");
-	HTTP_WRITE("Refresh: 0;");
-	write_post_url(http, post, 1);
-	HTTP_WRITE("\r\n");
+	PRINT_STATUS("200 Success");
+	PRINT(S("Refresh: 0;"));
+	print_post_url(http, post, 1);
+	PRINT(S("\r\n"));
 	HTTP_WRITE_SESSION();
-	HTTP_BODY();
+	PRINT_BODY();
 	HTTP_EOF();
 
 	return 0;
