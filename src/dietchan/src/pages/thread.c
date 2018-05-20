@@ -191,4 +191,5 @@ static void thread_page_finalize (http_context *http)
 	if (page->url)   free(page->url);
 	if (page->board) free(page->board);
 	array_reset(&page->x_forwarded_for);
+	free(page);
 }

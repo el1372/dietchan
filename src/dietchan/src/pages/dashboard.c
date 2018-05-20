@@ -392,5 +392,5 @@ static void dashboard_page_finalize(http_context *http)
 {
 	struct dashboard_page *page = (struct dashboard_page*)http->info;
 	if (page->boards_order)          free(page->boards_order);
-
+	free(page);
 }

@@ -272,4 +272,5 @@ static void edit_board_page_finalize(http_context *http)
 	if (page->board_name)            free(page->board_name);
 	if (page->board_title)           free(page->board_title);
 	if (page->board_banners)         free(page->board_banners);
+	free(page);
 }

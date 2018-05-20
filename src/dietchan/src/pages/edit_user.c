@@ -391,4 +391,5 @@ static void edit_user_page_finalize(http_context *http)
 	if (page->user_password)         free(page->user_password);
 	if (page->user_password_confirm) free(page->user_password_confirm);
 	if (page->boards)                free(page->boards);
+	free(page);
 }

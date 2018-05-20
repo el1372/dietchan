@@ -122,4 +122,5 @@ static void static_page_finalize (http_context *http)
 	struct static_page *page = (struct static_page*)http->info;
 	if (page->real_path) free(page->real_path);
 	if (page->doc_root)  free(page->doc_root);
+	free(page);
 }

@@ -891,6 +891,7 @@ static void mod_page_finalize(http_context *http)
 	if (page->ban_type)  free(page->ban_type);
 	if (page->comment)   free(page->comment);
 	if (page->ban_message) free(page->ban_message);
+	free(page);
 }
 
 static int  can_delete_post(struct mod_page *page, struct post *post)

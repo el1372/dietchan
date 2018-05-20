@@ -159,4 +159,6 @@ static void login_page_finalize(http_context *http)
 	if (page->username) free(page->username);
 	if (page->password) free(page->password);
 	if (page->redirect) free(page->redirect);
+
+	free(page);
 }

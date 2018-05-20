@@ -76,6 +76,12 @@ void http_finalize(context *ctx)
 		http->finalize(http);
 
 	array_reset(&http->read_buffer);
+	array_reset(&http->multipart_boundary);
+	array_reset(&http->multipart_real_boundary);
+	array_reset(&http->multipart_full_boundary);
+	array_reset(&http->multipart_name);
+	array_reset(&http->multipart_filename);
+	array_reset(&http->multipart_content_type);
 }
 
 http_context* http_new(int socket)

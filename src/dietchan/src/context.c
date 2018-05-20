@@ -168,7 +168,7 @@ void context_write_string(context *ctx, const char *s)
 {
 	while (1) {
 		char *write_buf=0;
-		size_t available = context_get_buffer(ctx, &write_buf);
+		size_t available = context_get_buffer(ctx, (void**)&write_buf);
 		size_t i=0;
 		while (i < available && s[i] != '\0') {
 			write_buf[i] = s[i];
