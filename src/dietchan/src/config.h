@@ -9,7 +9,7 @@
 // -- Server stuff --
 // The virtual "directory" in which the imageboard resides.
 // E.g. if it should appear in http://example.com/foo/bar/, then the prefix is /foo/bar
-#define PREFIX                      "/test"
+#define PREFIX                           ""
 // The path where uploads and static content are stored. Not visible to the public (although the content is).
 #define DOC_ROOT                    "./www"
 
