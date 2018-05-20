@@ -29,15 +29,15 @@ static inline size_t html_escape_char(char *output, char character)
 	const char *entity;
 	switch (character) {
 		case '&':  entity = "&amp;";  break;
- 		case '<':  entity = "&lt;";   break;
- 		case '>':  entity = "&gt;";   break;
- 		case '"':  entity = "&quot;"; break;
- 		case '\'': entity = "&#x27;"; break;
- 		case '/':  entity = "&#x2F;"; break;
- 		default:
- 			if (output)
- 				*output = character;
- 			return 1;
+		case '<':  entity = "&lt;";   break;
+		case '>':  entity = "&gt;";   break;
+		case '"':  entity = "&quot;"; break;
+		case '\'': entity = "&#x27;"; break;
+		case '/':  entity = "&#x2F;"; break;
+		default:
+			if (output)
+				*output = character;
+			return 1;
 	}
 	if (output)
 		strncpy(output, entity, strlen(entity));

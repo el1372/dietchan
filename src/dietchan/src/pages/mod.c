@@ -881,15 +881,15 @@ static void mod_page_finalize(http_context *http)
 	struct mod_page *page = (struct mod_page*)http->info;
 	array_reset(&page->posts);
 	array_reset(&page->reports);
-	if (page->action)    free(page->action);
-	if (page->password)  free(page->password);
-	if (page->ip_ranges) free(page->ip_ranges);
-	if (page->boards)    free(page->boards);
-	if (page->duration)  free(page->duration);
-	if (page->reason)    free(page->reason);
-	if (page->ban_target) free(page->ban_target);
-	if (page->ban_type)  free(page->ban_type);
-	if (page->comment)   free(page->comment);
+	if (page->action)      free(page->action);
+	if (page->password)    free(page->password);
+	if (page->ip_ranges)   free(page->ip_ranges);
+	if (page->boards)      free(page->boards);
+	if (page->duration)    free(page->duration);
+	if (page->reason)      free(page->reason);
+	if (page->ban_target)  free(page->ban_target);
+	if (page->ban_type)    free(page->ban_type);
+	if (page->comment)     free(page->comment);
 	if (page->ban_message) free(page->ban_message);
 	free(page);
 }

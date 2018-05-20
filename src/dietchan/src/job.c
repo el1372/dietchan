@@ -81,10 +81,10 @@ static int job_read(context *ctx, char *buf, int length)
 		printf("Exited job %d\n", (int)job->pid);
 
 		if (WIFEXITED(status)) {
-		    job->finish(job, WEXITSTATUS(status));
+			job->finish(job, WEXITSTATUS(status));
 		} else if (WIFSIGNALED(status)) {
 			// Dirty
-		    job->finish(job, -1);
+			job->finish(job, -1);
 		}
 	}
 	return 0;

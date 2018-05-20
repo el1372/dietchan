@@ -17,8 +17,8 @@ static void   rehash_some(db_hashmap *map);
 static void   maybe_grow(db_hashmap *map);
 
 void  db_hashmap_init(db_hashmap *map, db_obj *db, db_hashmap_data *data,
-                        db_hash_func hash_func, void *hash_func_extra,
-                        db_eq_func eq_func, void *eq_func_extra)
+                      db_hash_func hash_func, void *hash_func_extra,
+                      db_eq_func eq_func, void *eq_func_extra)
 {
 	byte_zero(map, sizeof(db_hashmap));
 

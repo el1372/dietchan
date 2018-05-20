@@ -321,12 +321,12 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 	} else if (case_equals(mime_type, "image/png") ||
 	    case_equals(mime_type, "image/gif") ||
 	    case_equals(mime_type, "application/pdf")) {
-	    *ext = ".png";
+		*ext = ".png";
 		strcat(thumb_file, *ext);
 
-	    if (case_equals(mime_type, "image/gif") ||
-	        case_equals(mime_type, "application/pdf"))
-	    	multipage=1;
+		if (case_equals(mime_type, "image/gif") ||
+		    case_equals(mime_type, "application/pdf"))
+			multipage=1;
 
 		strcpy(command, "/bin/magick convert ");
 		strcat(command, file);
@@ -349,7 +349,7 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 
 		strcat(command, " || true)");
 	} else {
-	    *ext = ".jpg";
+		*ext = ".jpg";
 		strcat(thumb_file, *ext);
 
 		strcpy(command, "/bin/magick convert ");

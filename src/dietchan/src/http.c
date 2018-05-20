@@ -630,10 +630,9 @@ static ssize_t http_read_multipart_header(http_context *http, char *buf, size_t 
 		} else {
 			// File upload
 			if (http->file_begin &&
-			    http->file_begin(http,
-			                          array_start(&http->multipart_name),
-			                          array_start(&http->multipart_filename),
-			                          array_start(&http->multipart_content_type)) == ERROR) {
+			    http->file_begin(http, array_start(&http->multipart_name),
+			                           array_start(&http->multipart_filename),
+			                           array_start(&http->multipart_content_type)) == ERROR) {
 				return ERROR;
 			}
 		}

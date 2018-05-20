@@ -209,7 +209,7 @@ void write_page_css(http_context *http)
 	        "form.reply input[type='file']:invalid + br + input[type='file'] {"
 	          "display:none;"
 	        "}"
-            "input[type='checkbox'] {"
+	        "input[type='checkbox'] {"
 	          "margin: 0;"
 	        "}"
 	        "form.reply {"

@@ -455,7 +455,7 @@ static int post_page_finish (http_context *http)
 	// Check if user is flood-limited
 
 	int64 flood = any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
-	                               board, BAN_TARGET_POST, is_flood_limited);
+	                              board, BAN_TARGET_POST, is_flood_limited);
 
 	if (flood) {
 		uint64 now = time(0);
