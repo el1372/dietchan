@@ -158,7 +158,7 @@ void accept_connections(int64 s, struct listener *listener, int limit)
 			case IP_V6: a = socket_accept6(s, ip, &port, &scope); break;
 		}
 		if (a==-1)
-			io_eagain_read(a);
+			io_eagain_read(s);
 		if (a<0) return;
 
 		http_context *http = http_new(a);
@@ -281,6 +281,8 @@ void add_listener(struct ip ip, uint16 port)
 	io_fd(s);
 	io_wantread(s);
 	io_setcookie(s, listener);
+
+	listener->socket = s;
 
 	++listener_count;
 }
