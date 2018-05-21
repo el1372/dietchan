@@ -22,6 +22,7 @@
 #include "db_hashmap.h"
 #include "persistence.h"
 #include "captcha.h"
+#include "page.h"
 
 #include "pages/static.h"
 #include "pages/post.h"
@@ -127,27 +128,12 @@ found:
 
 static void error (http_context *http)
 {
-	char err_status[FMT_LONG];
-	byte_zero(err_status, sizeof(err_status));
-	fmt_int(err_status, http->error_status);
-
-	context *ctx = (context*)http;
-
-	iob_adds(ctx->batch, "HTTP/1.1 ");
-	iob_adds_free(ctx->batch, strdup(err_status));
-	iob_adds(ctx->batch, " ");
-	iob_adds(ctx->batch, http->error_message);
-	iob_adds(ctx->batch, "\r\n");
-	iob_adds(ctx->batch, "Connection: close\r\n");
-	iob_adds(ctx->batch, "Content-Type: text/html; charset=utf-8\r\n");
-	iob_adds(ctx->batch, "\r\n");
-	iob_adds(ctx->batch, "<h1>");
-	iob_adds_free(ctx->batch, strdup(err_status));
-	iob_adds(ctx->batch, " ");
-	iob_adds(ctx->batch, http->error_message);
-	iob_adds(ctx->batch, "</h1>");
-
-	context_eof(ctx);
+	PRINT(S("HTTP/1.1 "),I(http->error_status),S(" "),S(http->error_message),S("\r\n"
+	        "Connection: close\r\n"
+	        "Content-Type: text/html; charset=utf-8\r\n"
+	        "\r\n"
+	        "<h1>"), S(http->error_message), S("</h1>"));
+	HTTP_EOF();
 }
 
 struct listener {
@@ -351,9 +337,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	// Add default listener if no listener specified
 	if (!listener_count)
 		add_listener((struct ip){IP_V4, {127,0,0,1}}, 4000);
-	//	add_listener((struct ip){IP_V6, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}}, 4000);
 
 	// Open database
 	if (db_init("dietchan_db") < 0)
