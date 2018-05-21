@@ -9,6 +9,7 @@
 #include <libowfat/byte.h>
 
 static void    job_finalize(context *ctx);
+static void    job_free(context *ctx);
 static int     job_read(context *ctx, char *buf, int length);
 
 
@@ -47,8 +48,9 @@ job_context* job_new(const char *command)
 			context_init(ctx, p[1]);
 			job->pid = pid;
 			printf("Started job %d (%s)\n", (int)job->pid, command);
-			ctx->finalize = job_finalize;
 			ctx->read = job_read;
+			ctx->finalize = job_finalize;
+			ctx->free = job_free;
 
 			io_nonblock(ctx->fd);
 			io_fd(ctx->fd);
@@ -63,6 +65,11 @@ static void job_finalize(context *ctx)
 	job_context *job = (job_context*)ctx;
 	printf("Finalized job %d\n", (int)job->pid);
 	// waitpid?
+}
+
+void job_free(context *ctx)
+{
+	free(ctx);
 }
 
 static int job_read(context *ctx, char *buf, int length)

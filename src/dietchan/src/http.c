@@ -22,6 +22,7 @@
 
 static void    http_init(http_context *http, int socket);
 static void    http_finalize(context *ctx);
+static void    http_free(context *ctx);
 static int     http_read(context *ctx, char *buf, int length);
 
 
@@ -61,6 +62,7 @@ void http_init(http_context *http, int socket)
 	context_init(ctx, socket);
 	ctx->read  = http_read;
 	ctx->finalize = http_finalize;
+	ctx->free = http_free;
 
 	io_nonblock(socket);
 	io_fd(socket);
@@ -82,6 +84,11 @@ void http_finalize(context *ctx)
 	array_reset(&http->multipart_name);
 	array_reset(&http->multipart_filename);
 	array_reset(&http->multipart_content_type);
+}
+
+void http_free(context *ctx)
+{
+	free(ctx);
 }
 
 http_context* http_new(int socket)

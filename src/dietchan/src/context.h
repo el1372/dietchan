@@ -19,6 +19,7 @@ typedef struct context {
 	int  eof;
 	int  (*read)(struct context *ctx, char *buf, int length);
 	void (*finalize)(struct context *ctx);
+	void (*free)(struct context *ctx);
 } context;
 
 void context_init(context *ctx, int fd);

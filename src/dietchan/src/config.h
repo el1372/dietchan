@@ -20,6 +20,10 @@
 // Number of seconds to wait between creating two reports (seconds)
 #define REPORT_FLOOD_LIMIT               10
 
+// -- Bans --
+
+#define DEFAULT_BAN_MESSAGE "BENUTZER WURDE FÜR DIESEN BEITRAG GEBANNT"
+
 // -- Boards --
 
 // Number of preview posts for thread in board view

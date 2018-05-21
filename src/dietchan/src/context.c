@@ -31,7 +31,9 @@ void context_unref(context *ctx)
 
 		iob_free(ctx->batch);
 		io_close(ctx->fd);
-		free(ctx);
+		//free(ctx);
+		if (ctx->free)
+			ctx->free(ctx);
 	}
 }
 

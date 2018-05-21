@@ -150,27 +150,35 @@ static void error (http_context *http)
 	context_eof(ctx);
 }
 
-//char ip[4] = {127,0,0,1};
-char ip[4] = {0,0,0,0};
-uint16 port;
-int listener;
-static char buf[8192];
-http_context *http;
-context *ctx;
+struct listener {
+	int64 socket;
+	struct ip ip;
+};
+// 64 listeners ought to be enough for anyone
+struct listener listeners[64];
+size_t listener_count;
 
-void accept_connections(int limit)
+static char buf[8192];
+
+void accept_connections(int64 s, struct listener *listener, int limit)
 {
 	for (int i=0; i<limit; ++i) {
-		int s=socket_accept4(listener, ip, &port);
-		if (s==-1) {
-			io_eagain_read(s);
+		char ip[16] = {0};
+		uint16 port;
+		int64 a;
+		uint32 scope;
+		switch(listener->ip.version) {
+			case IP_V4: a = socket_accept4(s, ip, &port); break;
+			case IP_V6: a = socket_accept6(s, ip, &port, &scope); break;
 		}
-		if (s<0) return;
+		if (a==-1)
+			io_eagain_read(a);
+		if (a<0) return;
 
-		http = http_new(s);
+		http_context *http = http_new(a);
 
-		http->ip.version = IP_V4;
-		byte_copy(&http->ip.bytes, 4, ip);
+		http->ip.version = listener->ip.version;
+		byte_copy(&http->ip.bytes, sizeof(ip), ip);
 		http->port = port;
 
 		http->request = request;
@@ -178,17 +186,15 @@ void accept_connections(int limit)
 	}
 }
 
-void read_data(int connection, int64 bytes_limit)
+void read_data(int64 s, context *ctx, int64 bytes_limit)
 {
-	ctx = io_getcookie(connection);
-
 	int64 bytes_read = 0;
 
 	// I'm not sure if we can actually read only part of the available bytes or if this may cause us
 	// to miss events. Because of this, the bytes_limit parameter is currently ignored.
 
 	while (/*bytes_read < bytes_limit*/1) {
-		int ret=io_tryread(connection, buf, sizeof(buf));
+		int64 ret=io_tryread(s, buf, sizeof(buf));
 		if (ret == -1)
 			return;
 
@@ -202,7 +208,7 @@ void read_data(int connection, int64 bytes_limit)
 			// Without the call to io_dontwantread, we get the close notification again and
 			// again. This leads to the reference count being decremented multiple times
 			// when it should only be decremented once. The result is a crash.
-			io_dontwantread(connection);
+			io_dontwantread(s);
 
 			context_unref(ctx);
 			return;
@@ -210,16 +216,23 @@ void read_data(int connection, int64 bytes_limit)
 	}
 }
 
+int is_listener(void *cookie)
+{
+	return ((char*)cookie >= (char*)listeners &&
+	        (char*)cookie < (char*)(listeners + sizeof(listeners)));
+}
+
 int handle_read_events(int limit)
 {
 	for (int i=0; i<limit; ++i) {
-		int s=io_canread();
+		int64 s=io_canread();
 		if (s == -1)
 			return 0;
-		if (s==listener) {
-			accept_connections(1000);
+		void *cookie = io_getcookie(s);
+		if (is_listener(cookie)) {
+			accept_connections(s, cookie, 1000);
 		} else {
-			read_data(s, 1);
+			read_data(s, cookie, 1);
 		}
 	}
 	return 1;
@@ -232,7 +245,7 @@ int handle_write_events(int limit)
 		if (s == -1)
 			return 0;
 
-		ctx = io_getcookie(s);
+		context *ctx = io_getcookie(s);
 		if (!ctx) {
 			io_dontwantwrite(s);
 			io_close(s);
@@ -244,48 +257,116 @@ int handle_write_events(int limit)
 	return 1;
 }
 
+void add_listener(struct ip ip, uint16 port)
+{
+	char buf[256];
+	buf[fmt_ip(buf,&ip)] = '\0';
+	fprintf(stderr, "Creating listener on port %d for address %s\n", (int)port, buf);
+
+	struct listener *listener = listeners + listener_count;
+	listener->ip = ip;
+
+	int64 s=-1;
+	int ret=0;
+	switch (ip.version) {
+	case IP_V4:
+		s = socket_tcp4();
+		if (s == -1)
+			perror("socket_tcp4");
+		ret = socket_bind4_reuse(s, &ip.bytes[0], port);
+		if (ret == -1)
+			perror("socket_bind4");
+		break;
+	case IP_V6:
+		s = socket_tcp6();
+		if (s == -1)
+			perror("socket_tcp6");
+		ret = socket_bind6_reuse(s, &ip.bytes[0], port, 0);
+		if (ret == -1)
+			perror("socket_bind6");
+		break;
+	}
+
+	ret = socket_listen(s, 10000);
+	if (ret == -1)
+		perror("socket_listen");
+
+	io_nonblock(s);
+	io_fd(s);
+	io_wantread(s);
+	io_setcookie(s, listener);
+
+	++listener_count;
+}
+
+const char *usage =
+	"Usage:\n"
+	"  dietchan [options]\n"
+	"\n"
+	"Options:\n"
+	"  -l ip,port Listen on the specified ip address and port.\n"
+    "\n"
+    "Examples:\n"
+    "  dietchan -l 127.0.0.1,4000 -l ::1,4001\n"
+    "  Accept IPv4 requests from 127.0.0.1 on port 4000 and accept IPv6 requests from ::1 on port 4001.\n"
+    "\n"
+    "  dietchan -l 0.0.0.0,4000\n"
+    "  Accept IPv4 requests from any address on port 4000.\n"
+    "\n"
+    "  dietchan -l ::0,4000\n"
+    "  Accept IPv6 and IPv4 requests from any address on port 4000.\n";
+
 int main(int argc, char* argv[])
 {
-	(void)argc; (void)argv;
-
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
-	int ret;
 
 	signal(SIGPIPE, SIG_IGN);
 
+	// Parse options
+	char c;
+	struct ip ip;
+	uint16 port;
+	while ((c = getopt(argc, argv, "l:")) != -1) {
+		switch(c) {
+		case 'l':
+			if (!scan_ip(optarg, &ip))
+				goto print_usage;
+
+			char *comma = strchr(optarg, ',');
+			if (!comma)
+				goto print_usage;
+
+			if (!scan_short(comma+1, &port))
+				goto print_usage;
+
+			add_listener(ip, port);
+			break;
+
+		case '?':
+		default:
+		print_usage:
+			write(2, usage, strlen(usage));
+			return -1;
+		}
+	}
+
+	if (!listener_count)
+		add_listener((struct ip){IP_V4, {127,0,0,1}}, 4000);
+	//	add_listener((struct ip){IP_V6, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}}, 4000);
+
+	// Open database
 	if (db_init("dietchan_db") < 0)
 		return -1;
 
+	// Create some required directories if they don't exist
 	mkdir(DOC_ROOT, 0755);
 	mkdir(DOC_ROOT "/uploads", 0755);
 	mkdir(DOC_ROOT "/captchas", 0755);
-
+	// Start generating captchas
 	generate_captchas();
 
-	listener = socket_tcp4();
-
-	if (listener == -1) {
-		perror("socket_tcp4");
-	}
-	ret = socket_bind4_reuse(listener, ip, 4000);
-	if (ret == -1) {
-		perror("socket_bind4");
-	}
-	ret = socket_listen(listener, 10000);
-	if (ret == -1) {
-		perror("socket_listen");
-	}
-
-	io_nonblock(listener);
-	ret = io_fd(listener);
-	if (!ret) {
-		printf("io_fd failed\n");
-		return -1;
-	}
-
-	io_wantread(listener);
-
+	// Main loop
 	while (1) {
 		io_wait();
 
@@ -295,7 +376,8 @@ int main(int argc, char* argv[])
 
 			// "speed hack"
 			// See gatling source. tl;dr without this, kernel drops connections under heavy load
-			accept_connections(1000);
+			for (size_t i=0; i<listener_count; ++i)
+				accept_connections(listeners[i].socket, &listeners[i], 1000);
 
 			loop |= handle_read_events(10);
 			loop |= handle_write_events(10);

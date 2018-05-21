@@ -167,7 +167,7 @@ static void add_default_range_for_ip(array *ranges, struct ip *ip)
 	range.ip = *ip;
 	switch (range.ip.version) {
 		case IP_V4: range.range = 32; break;
-		case IP_V6: range.range = 128; break;
+		case IP_V6: range.range = 64; break;
 	}
 
 	size_t count = array_length(ranges, sizeof(struct ip));
@@ -227,7 +227,7 @@ static int  mod_page_finish (http_context *http)
 		}
 	}
 	if (!page->ban_message)
-		page->ban_message = strdup("BENUTZER WURDE FÜR DIESEN BEITRAG GEBANNT");
+		page->ban_message = strdup(DEFAULT_BAN_MESSAGE);
 
 
 	int do_ban, do_delete, do_close, do_pin, do_report, do_delete_report, do_delete_ban, do_it;
