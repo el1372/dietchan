@@ -4,7 +4,6 @@
 #include "../config.h"
 #include "../http.h"
 #include "../persistence.h"
-#include "../tpl.h"
 
 struct dashboard_page {
 	struct session *session;

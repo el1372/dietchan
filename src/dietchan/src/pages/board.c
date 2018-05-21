@@ -4,9 +4,11 @@
 #include <libowfat/fmt.h>
 #include <libowfat/byte.h>
 
-#include "../page.h"
+#include "../tpl.h"
 #include "../persistence.h"
 #include "../captcha.h"
+#include "../bans.h"
+#include "../permissions.h"
 
 static int board_page_request (http_context *http, http_method method, char *path, char *query);
 static int board_page_header (http_context *http, char *key, char *val);
@@ -116,11 +118,11 @@ static int  board_page_finish (http_context *http)
 	struct board* board = (page->board)?find_board_by_name(page->board):0;
 	if (!board) {
 		PRINT_STATUS_HTML("404 Not Found");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
 		        "<p>Das Brett wurde nicht gefunden :(.</p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return ERROR;
 	}
 
@@ -130,11 +132,11 @@ static int  board_page_finish (http_context *http)
 
 	if (range_start < 0 || page->page >= page_count) {
 		PRINT_STATUS_HTML("404 Not Found");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
 		        "<p>Die Seite wurde nicht gefunden.</p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return ERROR;
 	}
 
@@ -149,7 +151,7 @@ static int  board_page_finish (http_context *http)
 	}
 
 	PRINT_STATUS_HTML("200 OK");
-	HTTP_WRITE_SESSION();
+	PRINT_SESSION();
 	PRINT_BODY();
 	print_page_header(http),
 	print_top_bar(http, page->user, page->url);
@@ -214,7 +216,7 @@ static int  board_page_finish (http_context *http)
 
 	print_page_footer(http);
 
-	HTTP_EOF();
+	PRINT_EOF();
 }
 
 static void board_page_finalize (http_context *http)

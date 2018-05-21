@@ -4,7 +4,7 @@
 #include <libowfat/fmt.h>
 #include <assert.h>
 
-#include "../page.h"
+#include "../tpl.h"
 #include "../util.h"
 #include "dashboard.h"
 
@@ -172,10 +172,10 @@ static int edit_user_page_finish (http_context *http)
 	    !(user_type(page->user) == USER_ADMIN ||
 		  user_id(page->user) == page->user_id)) {
 		PRINT_STATUS_HTML("403 Verboten");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT(S("<h1>403 Verboten</h1>"
 		        "Du kommst hier nid rein."));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -203,7 +203,7 @@ static int edit_user_page_finish (http_context *http)
 
 	    if (!user) {
 			PRINT_STATUS_HTML("404 Not Found");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, user_id(page->user));
 			PRINT(S("<span class='error'>Benutzer existiert nicht.</span>"));
@@ -215,10 +215,10 @@ static int edit_user_page_finish (http_context *http)
 	if (case_equals(page->action, "delete")) {
 		if (user == page->user) {
 			PRINT_STATUS_HTML("403 Verboten");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			PRINT(S("<p>Du kannst dein eigenes Benutzerkonto nicht löschen.</p>"));
-			HTTP_EOF();
+			PRINT_EOF();
 			return 0;
 		}
 	}
@@ -232,7 +232,7 @@ static int edit_user_page_finish (http_context *http)
 			#define ERROR_HEADER() \
 				if (!error_header_sent) { \
 					PRINT_STATUS_HTML("400 Bad Request"); \
-					HTTP_WRITE_SESSION(); \
+					PRINT_SESSION(); \
 					PRINT_BODY(); \
 					write_dashboard_header(http, 0); \
 					error_header_sent = 1; \
@@ -273,7 +273,7 @@ static int edit_user_page_finish (http_context *http)
 			if (error_header_sent) {
 				edit_user_page_print_form(http);
 				write_dashboard_footer(http);
-				HTTP_EOF();
+				PRINT_EOF();
 				return 0;
 			}
 
@@ -284,12 +284,12 @@ static int edit_user_page_finish (http_context *http)
 	if (case_equals(page->action, "delete")) {
 		if (!page->confirmed) {
 			PRINT_STATUS_HTML("200 OK");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, 0);
 			edit_user_page_print_confirmation(http);
 			write_dashboard_footer(http);
-			HTTP_EOF();
+			PRINT_EOF();
 			return 0;
 		}
 	}
@@ -298,12 +298,12 @@ static int edit_user_page_finish (http_context *http)
 	    case_equals(page->action, "edit")) {
 		if (!page->submitted) {
 			PRINT_STATUS_HTML("200 OK");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, 0);
 			edit_user_page_print_form(http);
 			write_dashboard_footer(http);
-			HTTP_EOF();
+			PRINT_EOF();
 			return 0;
 		}
 	}

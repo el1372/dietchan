@@ -7,10 +7,12 @@
 #include <libowfat/byte.h>
 #include <libowfat/scan.h>
 
-#include "../page.h"
 #include "../tpl.h"
+#include "../print.h"
 #include "../persistence.h"
 #include "../captcha.h"
+#include "../bans.h"
+#include "../permissions.h"
 
 static int thread_page_request (http_context *http, http_method method, char *path, char *query);
 static int thread_page_header (http_context *http, char *key, char *val);
@@ -106,11 +108,11 @@ static int thread_page_finish (http_context *http)
 	struct board *board = find_board_by_name(page->board);
 	if (!board) {
 		PRINT_STATUS_HTML("404 Not Found");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
 		        "<p>Das Brett wurde nicht gefunden :(.<p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -122,16 +124,16 @@ static int thread_page_finish (http_context *http)
 
 	if (!thread || thread_board(thread) != board) {
 		PRINT_STATUS_HTML("404 Not Found");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
 		        "<p>Faden existiert nicht :(.<p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
 	PRINT_STATUS_HTML("200 OK");
-	HTTP_WRITE_SESSION();
+	PRINT_SESSION();
 	PRINT_BODY();
 
 	print_page_header(http);
@@ -182,7 +184,7 @@ static int thread_page_finish (http_context *http)
 
 	print_page_footer(http);
 
-	HTTP_EOF();
+	PRINT_EOF();
 }
 
 static void thread_page_finalize (http_context *http)

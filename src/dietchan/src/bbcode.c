@@ -5,7 +5,7 @@
 
 #include "http.h"
 
-#include "page.h"
+#include "tpl.h"
 #include "util.h"
 
 const char *TAGS[] = {"b", "i", "u", "s", "spoiler", "code", "q", 0};

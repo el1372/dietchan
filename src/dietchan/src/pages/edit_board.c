@@ -4,9 +4,9 @@
 #include <libowfat/fmt.h>
 #include <assert.h>
 
-#include "../page.h"
-#include "../util.h"
 #include "../tpl.h"
+#include "../util.h"
+#include "../print.h"
 #include "dashboard.h"
 
 static int  edit_board_page_get_param (http_context *http, char *key, char *val);
@@ -108,11 +108,11 @@ static int edit_board_page_finish (http_context *http)
 
 	if (!page->user || user_type(page->user) != USER_ADMIN) {
 		PRINT_STATUS_HTML("403 Verboten");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>403 Verboten</h1>"
 		        "Du kommst hier nid rein."));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -130,7 +130,7 @@ static int edit_board_page_finish (http_context *http)
 
 		if (!board) {
 			PRINT_STATUS_HTML("404 Not Found");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http,0);
 			PRINT(S("<span class='error'>Brett existiert nicht.</span>"));
@@ -145,26 +145,26 @@ static int edit_board_page_finish (http_context *http)
 
 			if (str_equal(page->board_name, "")) {
 				PRINT_STATUS_HTML("400 Bad Request");
-				HTTP_WRITE_SESSION();
+				PRINT_SESSION();
 				PRINT_BODY();
 				write_dashboard_header(http,user_id(page->user));
 				PRINT(S("<p class='error'>Bitte Brett-Namen eingeben</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
-				HTTP_EOF();
+				PRINT_EOF();
 				return 0;
 			}
 
 			if (find_board_by_name(page->board_name) != board) {
 				PRINT_STATUS_HTML("400 Bad Request");
-				HTTP_WRITE_SESSION();
+				PRINT_SESSION();
 				PRINT_BODY();
 				write_dashboard_header(http, user_id(page->user));
 				PRINT(S("<p class='error'>Ein Brett mit dem Namen '"), E(page->board_name),
 				      S("' existiert bereits. Bitte einen anderen Namen eingeben.</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
-				HTTP_EOF();
+				PRINT_EOF();
 				return 0;
 			}
 		}
@@ -173,12 +173,12 @@ static int edit_board_page_finish (http_context *http)
 	if (case_equals(page->action, "delete")) {
 		if (!page->confirmed) {
 			PRINT_STATUS_HTML("200 OK");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, user_id(page->user));
 			edit_board_page_print_confirmation(http);
 			write_dashboard_footer(http);
-			HTTP_EOF();
+			PRINT_EOF();
 			return 0;
 		}
 	}
@@ -187,12 +187,12 @@ static int edit_board_page_finish (http_context *http)
 	    case_equals(page->action, "edit")) {
 		if (!page->submitted) {
 			PRINT_STATUS_HTML("200 OK");
-			HTTP_WRITE_SESSION();
+			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, user_id(page->user));
 			edit_board_page_print_form(http);
 			write_dashboard_footer(http);
-			HTTP_EOF();
+			PRINT_EOF();
 			return 0;
 		}
 	}

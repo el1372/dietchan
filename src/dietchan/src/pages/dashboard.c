@@ -6,7 +6,8 @@
 #include <libowfat/ip6.h>
 #include <assert.h>
 
-#include "../page.h"
+#include "../tpl.h"
+#include "../permissions.h"
 #include "../util.h"
 
 static int  dashboard_page_param (http_context *http, char *key, char *val);
@@ -179,7 +180,7 @@ static int  dashboard_page_finish (http_context *http)
 	}
 
 	PRINT_STATUS_HTML("200 OK");
-	HTTP_WRITE_SESSION();
+	PRINT_SESSION();
 	PRINT_BODY();
 
 	write_dashboard_header(http, user_id(page->user));
@@ -384,7 +385,7 @@ static int  dashboard_page_finish (http_context *http)
 
 	write_dashboard_footer(http);
 
-	HTTP_EOF();
+	PRINT_EOF();
 	return 0;
 }
 

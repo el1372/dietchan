@@ -13,8 +13,9 @@
 #include <libowfat/ip4.h>
 #include <libowfat/ip6.h>
 
-#include "../page.h"
+#include "../tpl.h"
 #include "../util.h"
+#include "../permissions.h"
 
 
 static int  mod_page_get_param (http_context *http, char *key, char *val);
@@ -271,7 +272,7 @@ static int  mod_page_finish (http_context *http)
 		PRINT_STATUS_HTML("403 Verboten");
 		PRINT_BODY();
 		PRINT(S("<p>Netter Versuch.</p><p><small><a href='"),S(PREFIX),S("/login'>Sitzung abgelaufen?</a></small></p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		goto cleanup;
 	}
 
@@ -279,12 +280,12 @@ static int  mod_page_finish (http_context *http)
 		PRINT_STATUS_HTML("403 Verboten");
 		PRINT_BODY();
 		PRINT(S("<p>Du hast keine Zugriffsrechte für diesen Bann.</p>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		goto cleanup;
 	}
 
 	PRINT_STATUS_HTML("200 Ok");
-	HTTP_WRITE_SESSION();
+	PRINT_SESSION();
 	PRINT_BODY();
 	mod_write_header(http);
 	PRINT(S("<form method='post'>"
@@ -867,7 +868,7 @@ end:
 	if (do_it && page->redirect)
 		PRINT(S("<meta http-equiv='refresh' content='1; "), E(page->redirect), S("'>"));
 
-	HTTP_EOF();
+	PRINT_EOF();
 
 cleanup:
 	array_reset(&ranges);

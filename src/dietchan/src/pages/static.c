@@ -15,7 +15,7 @@
 #include <libowfat/fmt.h>
 #include <libowfat/open.h>
 
-#include "../page.h"
+#include "../tpl.h"
 #include "../mime_types.h"
 
 static int static_page_request (http_context *http, http_method method, char *path, char *query);
@@ -93,7 +93,7 @@ static int static_page_finish (http_context *http)
 		PRINT_STATUS("304 Not changed");
 		PRINT(S("Cache-Control: private, max-age=31536000\r\n")); // 1 year
 		PRINT_BODY();
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -110,11 +110,10 @@ static int static_page_finish (http_context *http)
 	        "Cache-Control: private, max-age=31536000\r\n" // 1 year
 	        "Content-Type: "), S(mime), S("\r\n"
 	        "Content-Length: "), UL(st.st_size), S("\r\n"));
-	// Todo: mime type
 	PRINT_BODY();
-	HTTP_WRITE_FILE(fd, 0, st.st_size);
+	context_write_file((context*)http, fd, 0, st.st_size);
 
-	HTTP_EOF();
+	PRINT_EOF();
 }
 
 static void static_page_finalize (http_context *http)

@@ -22,7 +22,7 @@
 #include "db_hashmap.h"
 #include "persistence.h"
 #include "captcha.h"
-#include "page.h"
+#include "tpl.h"
 
 #include "pages/static.h"
 #include "pages/post.h"
@@ -133,7 +133,7 @@ static void error (http_context *http)
 	        "Content-Type: text/html; charset=utf-8\r\n"
 	        "\r\n"
 	        "<h1>"), S(http->error_message), S("</h1>"));
-	HTTP_EOF();
+	PRINT_EOF();
 }
 
 struct listener {

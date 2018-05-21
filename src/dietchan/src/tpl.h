@@ -1,49 +1,39 @@
 #ifndef TPL_H
 #define TPL_H
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include "context.h"
+#include <libowfat/iob.h>
+#include <libowfat/str.h>
+#include <libowfat/case.h>
+#include <libowfat/scan.h>
+#include <libowfat/fmt.h>
+#include "http.h"
+#include "persistence.h"
+#include "print.h"
+#include "params.h"
+#include "session.h"
 
-#define S(s) ((struct tpl_part){T_STR, (long long)s})
-#define E(s) ((struct tpl_part){T_ESC_HTML, (long long)s})
-#define I(i) ((struct tpl_part){T_INT, (long long)i})
-#define U(u) ((struct tpl_part){T_UINT, (long long)u})
-#define L(l) ((struct tpl_part){T_LONG, (long long)l})
-#define UL(ul) ((struct tpl_part){T_ULONG, (long long)ul})
-#define X(ul) ((struct tpl_part){T_XLONG, (long long)ul})
-#define H(ull) ((struct tpl_part){T_HUMAN, (long long)ull})
-#define HK(ull) ((struct tpl_part){T_HUMANK, (long long)ull})
-#define HTTP_DATE(t) ((struct tpl_part){T_HTTP_DATE, (long long)t})
-#define IP(ip) ((struct tpl_part){T_IP, (long long)(&ip)})
-#define TIME_MS(ms) ((struct tpl_part){T_TIME_MS, (long long)ms})
-#define TEND    ((struct tpl_part){0})
 
-#define CTX_PRINT(ctx, ...) _print((context*)(ctx), __VA_ARGS__, TEND)
-#define PRINT(...) CTX_PRINT(http, __VA_ARGS__)
+void print_page_header(http_context *http);
+void print_reply_form(http_context *http, int board, int thread, struct captcha *captcha);
+void print_mod_bar(http_context *http, int ismod);
+void print_page_footer(http_context *http);
+void print_board_bar(http_context *http);
+void print_top_bar(http_context *http, struct user *user, const char *url);
+void print_bottom_bar(http_context *http);
 
-enum tpl_part_type {
-	T_STR = 1,
-	T_ESC_HTML,
-	T_INT,
-	T_UINT,
-	T_LONG,
-	T_ULONG,
-	T_XLONG,
-	T_HTTP_DATE,
-	T_HUMAN,
-	T_HUMANK,
-	T_IP,
-	T_TIME_MS
+void print_upload(http_context *http, struct upload *upload);
+
+enum {
+	WRITE_POST_IP         = 1 << 0,
+	WRITE_POST_USER_AGENT = 1 << 1
 };
 
-struct tpl_part {
-	int type;
-	const long long param0;
-};
+void print_post(http_context *http, struct post *post, int absolute_url, int flags);
+void print_post_url(http_context *http, struct post *post, int absolute);
+void print_post_url2(http_context *http, struct board *board, struct thread *thread, struct post *post, int absolute);
+void abbreviate_filename(char *buffer, size_t max_length);
+size_t estimate_width(const char *buffer);
 
-void _print(context *ctx, ...);
+
 
 #endif // TPL_H

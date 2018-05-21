@@ -363,8 +363,6 @@ void delete_post(struct post *post)
 	post_free(post);
 }
 
-
-
 void user_free(struct user *o)
 {
 	db_free(db, db_unmarshal(db, o->name));
@@ -395,47 +393,6 @@ struct user* find_user_by_id(const uint64 id)
 		if (user_id(u) == id)
 			return u;
 		u = user_next_user(u);
-	}
-	return 0;
-}
-
-int is_mod_for_board(struct user *user, struct board *board)
-{
-	if (user && (user_type(user) == USER_MOD || user_type(user) == USER_ADMIN)) {
-		uint64 *boards = user_boards(user);
-		if (!boards) // Global mod
-			return 1;
-
-		uint64 bid = board_id(board);
-		uint64 *b = &boards[0];
-		while (*b != -1) {
-			if (*b == bid)
-				return 1;
-			++b;
-		}
-	}
-	return 0;
-}
-
-int can_see_ban(struct user *user, struct ban *ban)
-{
-	if (!ban) return 1;
-	if (!user) return 0;
-	if (user_type(user) == USER_ADMIN)
-		return 1;
-	if (user_type(user) == USER_MOD) {
-		if (!ban_boards(ban) || !user_boards(user))
-			return 1;
-
-		for (uint64 *bb = ban_boards(ban); *bb != -1; ++bb) {
-			// Ignore boards that no longer exist
-			if (!find_board_by_id(*bb))
-				continue;
-			for (uint64 *ub = user_boards(user); *ub != -1; ++ub) {
-				if (*ub == *bb)
-					return 1;
-			}
-		}
 	}
 	return 0;
 }
@@ -488,80 +445,6 @@ void session_destroy(struct session *session)
 	session_free(session);
 }
 
-struct session* session_update(struct session *session)
-{
-	if (!session) return 0;
-
-	uint64 t = time(0);
-	uint64 last_seen = session_last_seen(session);
-	int64 timeout = session_timeout(session);
-	if (timeout > 0 && t > last_seen + timeout) {
-		// Expired
-		begin_transaction();
-
-		session_destroy(session);
-
-		commit();
-
-		return 0;
-	} else {
-		begin_transaction();
-
-		session_set_last_seen(session, t);
-
-		#if 0
-		// FIXME: Update IP
-		struct ip ip;
-		ip.version = IP_V4; // FIXME: Support IP_V6
-		memcpy(&ip.bytes[0], http->ip, 4);
-		session_set_last_ip(session, ip);
-		#endif
-
-		commit();
-
-		return session;
-	}
-}
-
-void purge_expired_sessions()
-{
-	struct session *session = master_first_session(master);
-	uint64 t = time(0);
-	begin_transaction();
-	while (session) {
-		uint64 last_seen = session_last_seen(session);
-		int64 timeout = session_timeout(session);
-		struct session *next = session_next_session(session);
-
-		if (timeout > 0 && t >last_seen+timeout)
-			session_destroy(session);
-
-		session = next;
-	}
-	commit();
-}
-#if 0
-struct ban* ban_add()
-{
-	uint64 ban_counter = master_ban_counter(master) + 1;
-	master_set_ban_counter(master, ban_counter);
-
-	uint64 ban_count = master_ban_count(master) + 1;
-	master_set_ban_count(master, ban_count);
-
-	struct ban *bans = master_bans(master);
-	bans = db_realloc(db, bans, sizeof(struct ban)*ban_count);
-
-	master_set_bans(master, bans);
-
-	struct ban *ban = &bans[ban_count-1];
-	ban_set_idx(ban, ban_count-1);
-	ban_set_id(ban, ban_counter);
-	ban_set_enabled(ban, 1);
-
-	return ban;
-}
-#endif
 
 void ban_free(struct ban *ban)
 {
@@ -639,39 +522,6 @@ void delete_ban(struct ban *ban)
 		master_set_last_ban(master, prev);
 
 	ban_free(ban);
-}
-
-int ban_matches_ip(struct ban *ban, struct ip *ip)
-{
-	return ip_in_range(&ban_range(ban), ip);
-}
-
-int ban_matches_board(struct ban *ban, uint64 board_id)
-{
-	int64 *boards = ban_boards(ban);
-
-	// Global ban
-	if (!boards)
-		return 1;
-
-	for (int i=0; boards[i] >= 0; ++i) {
-		if (boards[i] == (int64)board_id)
-			return 1;
-	}
-	return 0;
-}
-
-void purge_expired_bans()
-{
-	uint64 now = time(NULL);
-	struct ban *ban = master_first_ban(master);
-	while (ban) {
-		struct ban *next = ban_next_ban(ban);
-		if (ban_duration(ban) > 0 && now > ban_timestamp(ban) + ban_duration(ban)) {
-			delete_ban(ban);
-		}
-		ban = next;
-	}
 }
 
 struct ban* find_ban_by_id(uint64 bid)

@@ -410,8 +410,6 @@ void user_free(struct user *o);
 
 struct user* find_user_by_name(const char *name);
 struct user* find_user_by_id(const uint64 id);
-int is_mod_for_board(struct user *user, struct board *board);
-int can_see_ban(struct user *user, struct ban *ban);
 void delete_user(struct user *user);
 
 struct session {
@@ -448,9 +446,6 @@ struct session {
 void session_free(struct session *o);
 
 struct session *find_session_by_sid(const char *sid);
-struct session* session_update(struct session *session);
-void session_destroy(struct session *session);
-void purge_expired_sessions();
 
 
 enum ban_type {
@@ -531,10 +526,7 @@ void ban_free(struct ban *ban);
 void insert_ban(struct ban *ban);
 void update_ban(struct ban *ban);
 void delete_ban(struct ban *ban);
-void purge_expired_bans();
 struct ban* find_ban_by_id(uint64 bid);
-int ban_matches_ip(struct ban *ban, struct ip *ip);
-int ban_matches_board(struct ban *ban, uint64 board_id);
 
 
 struct captcha {

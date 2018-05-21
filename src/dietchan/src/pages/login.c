@@ -4,7 +4,7 @@
 #include <libowfat/str.h>
 #include <libowfat/case.h>
 
-#include "../page.h"
+#include "../tpl.h"
 #include "../util.h"
 
 static int  login_page_get_param (http_context *http, char *key, char *val);
@@ -75,7 +75,7 @@ static int  login_page_finish (http_context *http)
 
 	if (!page->username || str_equal(page->username, "")) {
 		PRINT_STATUS_HTML("200 OK");
-		HTTP_WRITE_SESSION();
+		PRINT_SESSION();
 		PRINT_BODY();
 		print_page_header(http);
 		PRINT(S("<div class='top-bar'>"));
@@ -96,14 +96,14 @@ static int  login_page_finish (http_context *http)
 		        "</form>"));
 		print_bottom_bar(http);
 		print_page_footer(http);
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 	if (!page->password || str_equal(page->password, "")) {
 		PRINT_STATUS_HTML("400 Bad Request");
 		PRINT_BODY();
 		PRINT(S("<h1>Du musst ein Passwort eingeben.</h1>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -112,7 +112,7 @@ static int  login_page_finish (http_context *http)
 		PRINT_STATUS_HTML("403 Du kommst hier nid rein");
 		PRINT_BODY();
 		PRINT(S("<h1>Benutzername oder Passwort falsch.</h1>"));
-		HTTP_EOF();
+		PRINT_EOF();
 		return 0;
 	}
 
@@ -149,7 +149,7 @@ static int  login_page_finish (http_context *http)
 	PRINT_STATUS_REDIRECT("302 Success", S(page->redirect));
 	PRINT(S("Set-Cookie:session="),S(sid),S(";path="),S(PREFIX), S("/;\r\n"));
 	PRINT_BODY();
-	HTTP_EOF();
+	PRINT_EOF();
 }
 
 static void login_page_finalize(http_context *http)
