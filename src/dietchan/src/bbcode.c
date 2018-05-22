@@ -60,16 +60,13 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 	int open = 0;
 	ssize_t i = 0;
 
-	// Reserve enough space to escape all substrings of s
-	char *buffer = alloca(fmt_escape(FMT_LEN, s));
-
-	const char **tag_stack_start = alloca(strlen(s));
+	const char **tag_stack_start = alloca(strlen(s)*sizeof(const char*));
 	const char **tag_stack       = tag_stack_start;
 
 	#define WRITE_ESCAPED(length) \
 		do { \
 			if (length > 0) \
-				context_write_data((context*)http, buffer, fmt_escapen(buffer, ss, length)); \
+				_print_esc_html((context*)http, ss, length); \
 		} while (0)
 
 	#define OPEN_TAG(tag) \
@@ -81,6 +78,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 	#define CLOSE_TAG(tag, length) \
 		do { \
 			const char **t = tag_stack - 1; \
+			/* Check if tag was open to begin with */ \
 			int tag_open = 0; \
 			while (t >= tag_stack_start) { \
 				if (*t == tag) { \
@@ -97,7 +95,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 				--t; \
 			} \
 			if (t >= tag_stack_start && *t == tag  && t >= tag_stack_start) { \
-				/* Close tag if it was open */ \
+				/* Close tag */ \
 				write_bbcode_tag(http, tag, 0); \
 				/* Remove tag from stack */ \
 				memmove(t, t+1, (size_t)tag_stack - (size_t)t - 1); \

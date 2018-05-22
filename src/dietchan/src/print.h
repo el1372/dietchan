@@ -75,5 +75,6 @@ struct tpl_part {
 };
 
 void _print(context *ctx, ...);
+void _print_esc_html(context *ctx, const char *unescaped, ssize_t max_length);
 
 #endif // PRINT_H

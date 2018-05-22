@@ -4,15 +4,16 @@
 #include "util.h"
 #include "ip.h"
 
-void _print_esc_html(context *ctx, const char *unescaped)
+void _print_esc_html(context *ctx, const char *unescaped, ssize_t max_length)
 {
 	const char *s = unescaped;
-	while (1) {
+	const char *e = max_length>=0?s + max_length - 1:0;
+	while (*s != '\0' && (!e || s<=e)) {
 		// 0. Zero copy
 		char *buf;
 		size_t available = context_get_buffer(ctx, (void**)&buf);
 		size_t written = 0;
-		while (available >= FMT_ESC_HTML_CHAR && *s != '\0') {
+		while (available >= FMT_ESC_HTML_CHAR && *s != '\0' && (!e || s<=e)) {
 			written += html_escape_char(buf + written, *s);
 			available -= written;
 			++s;
@@ -24,14 +25,11 @@ void _print_esc_html(context *ctx, const char *unescaped)
 		// 1. Use buffer for remainder
 		char tmp[FMT_ESC_HTML_CHAR*FMT_ESC_HTML_CHAR];
 		written = 0;
-		for (int i=0; i<FMT_ESC_HTML_CHAR && *s != '\0'; ++i) {
+		for (int i=0; i<FMT_ESC_HTML_CHAR && *s != '\0' && (!e || s<=e); ++i) {
 			written += html_escape_char(&tmp[written], *s);
 			++s;
 		}
 		context_write_data(ctx, tmp, written);
-
-		if (*s == '\0')
-			return;
 	}
 }
 
@@ -43,7 +41,7 @@ static void _print_internal(context *ctx, const struct tpl_part *part)
 			context_write_string(ctx, (const char*)part->param0);
 			break;
 		case T_ESC_HTML:
-			_print_esc_html(ctx, (const char*)part->param0);
+			_print_esc_html(ctx, (const char*)part->param0, -1);
 			break;
 		case T_INT:
 			context_write_data(ctx, buf, fmt_int(buf, ((int)part->param0)));
