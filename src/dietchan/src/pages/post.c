@@ -74,8 +74,7 @@ void post_page_init(http_context *http)
 	page->password = strdup("");
 	page->subject = strdup("");
 
-	byte_copy(&page->ip, sizeof(struct ip), &http->ip);
-
+	page->ip = http->ip;
 }
 
 static int post_page_header (http_context *http, char *key, char *val)

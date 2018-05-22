@@ -72,6 +72,12 @@ int is_external_ip(struct ip *ip)
 	return 1;
 }
 
+int ip_eq(struct ip *a, struct ip *b)
+{
+	return (a->version == b->version) &&
+	       byte_equal(a->bytes, (a->version==IP_V6)?16:4, b->bytes);
+}
+
 uint64 ip_range_hash(void *key, void *extra)
 {
 	struct ip_range *range = (struct ip_range*)key;
