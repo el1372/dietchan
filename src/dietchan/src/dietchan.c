@@ -365,9 +365,9 @@ int main(int argc, char* argv[])
 			// "speed hack"
 			// See gatling source. tl;dr without this, kernel drops connections under heavy load
 			for (size_t i=0; i<listener_count; ++i)
-				accept_connections(listeners[i].socket, &listeners[i], 1000);
+				accept_connections(listeners[i].socket, &listeners[i], 10000);
 
-			loop |= handle_read_events(10);
+			loop |= handle_read_events(100);
 			loop |= handle_write_events(10);
 		}
 	}
