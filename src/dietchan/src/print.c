@@ -38,7 +38,7 @@ static void _print_internal(context *ctx, const struct tpl_part *part)
 	char buf[256];
 	switch (part->type) {
 		case T_STR:
-			context_write_string(ctx, (const char*)part->param0);
+			context_write_data(ctx, (const char*)part->param0, part->param1);
 			break;
 		case T_ESC_HTML:
 			_print_esc_html(ctx, (const char*)part->param0, -1);

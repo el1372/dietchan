@@ -7,7 +7,7 @@
 #include <string.h>
 #include "context.h"
 
-#define S(s) ((struct tpl_part){T_STR, (long long)s})
+#define S(s) ((struct tpl_part){T_STR, (long long)s, strlen(s)})
 #define E(s) ((struct tpl_part){T_ESC_HTML, (long long)s})
 #define I(i) ((struct tpl_part){T_INT, (long long)i})
 #define U(u) ((struct tpl_part){T_UINT, (long long)u})
@@ -72,6 +72,7 @@ enum tpl_part_type {
 struct tpl_part {
 	int type;
 	const long long param0;
+	const size_t param1;
 };
 
 void _print(context *ctx, ...);

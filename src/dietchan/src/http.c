@@ -64,8 +64,7 @@ void http_init(http_context *http, int socket)
 	ctx->finalize = http_finalize;
 	ctx->free = http_free;
 
-	io_nonblock(socket);
-	io_fd(socket);
+	io_fd_flags(socket, IO_FD_NONBLOCK | IO_FD_CANWRITE);
 	io_wantread(socket);
 	io_setcookie(socket, http);
 }

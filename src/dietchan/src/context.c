@@ -6,6 +6,54 @@
 #include <libowfat/byte.h>
 #include <libowfat/io.h>
 
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
+// We allocate buffers in chunks of this size
+static const size_t chunk_size = 10*4096; // 10 pages
+
+// We cache allocated chunks because dietlibc calls mmap() for every allocation greater than 4kB,
+// which is *SLOW*.
+
+struct chunk {
+	struct chunk *next;
+	struct chunk *prev;
+};
+
+struct chunk chunk_sentinel = {&chunk_sentinel, &chunk_sentinel};
+
+static void allocate_more_chunks()
+{
+	// Allocate space for 10 chunks at once.
+	size_t n_chunks = 10;
+	void *chunks = malloc((chunk_size + sizeof(struct chunk))*n_chunks);
+	for (size_t i=0; i<n_chunks; ++i) {
+		struct chunk *chunk = (struct chunk*)((char*)chunks + (chunk_size+sizeof(struct chunk))*i);
+		chunk->next = &chunk_sentinel;
+		chunk->prev = chunk_sentinel.prev;
+		chunk->next->prev = chunk;
+		chunk->prev->next = chunk;
+	}
+}
+
+static struct chunk* get_chunk()
+{
+	if (unlikely(chunk_sentinel.next == &chunk_sentinel))
+		allocate_more_chunks();
+
+	struct chunk *chunk = chunk_sentinel.next;
+	struct chunk *prev = chunk->prev;
+	struct chunk *next = chunk->next;
+	prev->next = next;
+	next->prev = prev;
+
+	chunk->next = chunk;
+	chunk->prev = chunk;
+	return chunk;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 void context_init(context *ctx, int fd)
 {
 	byte_zero(ctx, sizeof(context));
@@ -26,12 +74,17 @@ void context_unref(context *ctx)
 		if (ctx->finalize)
 			ctx->finalize(ctx);
 
-		if (ctx->buf)
-			free(ctx->buf);
+		if (likely(ctx->chunk)) {
+			struct chunk *a = ctx->chunk;
+			struct chunk *b = ctx->chunk->prev;
+			b->next = &chunk_sentinel;
+			a->prev = chunk_sentinel.prev;
+			b->next->prev = b;
+			a->prev->next = a;
+		}
 
 		iob_free(ctx->batch);
 		io_close(ctx->fd);
-		//free(ctx);
 		if (ctx->free)
 			ctx->free(ctx);
 	}
@@ -53,9 +106,8 @@ int  context_read(context *ctx, char *buf, int length)
 
 void context_flush(context *ctx)
 {
-	if (ctx->buf) {
-		iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
-		ctx->buf = 0;
+	if (likely(ctx->chunk)) {
+		iob_addbuf(ctx->batch, (char*) ctx->chunk + sizeof(struct chunk), ctx->buf_offset);
 		ctx->buf_size = 0;
 		ctx->buf_offset = 0;
 	}
@@ -138,48 +190,36 @@ void context_eof(context *ctx)
 	context_flush(ctx);
 }
 
-static const size_t chunk_size = 10*4096; // 10 pages
 
 size_t context_get_buffer(context *ctx, void **buf)
 {
-	if (!ctx->buf) {
+	if (unlikely(ctx->buf_offset == ctx->buf_size)) {
+		struct chunk *new_chunk = get_chunk();
+		if (ctx->chunk) {
+			new_chunk->prev = ctx->chunk;
+			new_chunk->next = ctx->chunk->next;
+			new_chunk->prev->next = new_chunk;
+			new_chunk->next->prev = new_chunk;
+		}
+		ctx->chunk = new_chunk;
 		ctx->buf_size = chunk_size;
-		ctx->buf = malloc(ctx->buf_size);
 		ctx->buf_offset = 0;
-		*buf = ctx->buf;
+		*buf = (char*)ctx->chunk+sizeof(struct chunk);
 	} else {
-		*buf = ctx->buf+ctx->buf_offset;
+		*buf = (char*)ctx->chunk+sizeof(struct chunk)+ctx->buf_offset;
 	}
 	return (ctx->buf_size-ctx->buf_offset);
 }
 
 void context_consume_buffer(context *ctx, size_t bytes_written)
 {
-	assert(ctx->buf);
+	assert(ctx->chunk);
 	ctx->buf_offset += bytes_written;
 	assert(ctx->buf_offset <= ctx->buf_size);
-	if (ctx->buf_offset == ctx->buf_size) {
-		iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
-		ctx->buf = 0;
+	if (unlikely(ctx->buf_offset == ctx->buf_size)) {
+		iob_addbuf(ctx->batch, (char*) ctx->chunk + sizeof(struct chunk), ctx->buf_offset);
 		ctx->buf_size = 0;
 		ctx->buf_offset = 0;
-	}
-}
-
-void context_write_string(context *ctx, const char *s)
-{
-	while (1) {
-		char *write_buf=0;
-		size_t available = context_get_buffer(ctx, (void**)&write_buf);
-		size_t i=0;
-		while (i < available && s[i] != '\0') {
-			write_buf[i] = s[i];
-			++i;
-		}
-		context_consume_buffer(ctx, i);
-		if (s[i] == '\0')
-			return;
-		s += i;
 	}
 }
 
@@ -188,7 +228,7 @@ void context_write_data(context *ctx, const void *buf, size_t length)
 	while (1) {
 		void *write_buf=0;
 		size_t available = context_get_buffer(ctx, &write_buf);
-		if (available > length) {
+		if (likely(available > length)) {
 			memcpy(write_buf, buf, length);
 			context_consume_buffer(ctx, length);
 			return;
@@ -203,9 +243,8 @@ void context_write_data(context *ctx, const void *buf, size_t length)
 
 void context_write_file(context *ctx, int64 fd, uint64 offset, uint64 length)
 {
-	if (ctx->buf) {
-		iob_addbuf_free(ctx->batch, ctx->buf, ctx->buf_offset);
-		ctx->buf = 0;
+	if (ctx->chunk) {
+		iob_addbuf(ctx->batch, (char*) ctx->chunk + sizeof(struct chunk), ctx->buf_offset);
 		ctx->buf_size = 0;
 		ctx->buf_offset = 0;
 	}
