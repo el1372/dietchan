@@ -4,6 +4,9 @@
 #include<unistd.h>
 #include<libowfat/array.h>
 
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 size_t byte_str(const char *haystack, size_t haystack_length, const char *needle);
 int str_equalb(const char *a, size_t a_length, const char *b);
 int str_startb(const char *a, size_t a_length, const char *b);
@@ -26,22 +29,27 @@ size_t fmt_escapen(char *buf, const char *unescaped, size_t n);
 
 static inline size_t html_escape_char(char *output, char character)
 {
-	const char *entity;
+	const char *entity = &character;
+	size_t len = 1;
+
+	#define ENTITY(s) do { \
+		entity = s; \
+		len = strlen(s); \
+	}  while (0)
+
 	switch (character) {
-		case '&':  entity = "&amp;";  break;
-		case '<':  entity = "&lt;";   break;
-		case '>':  entity = "&gt;";   break;
-		case '"':  entity = "&quot;"; break;
-		case '\'': entity = "&#x27;"; break;
-		case '/':  entity = "&#x2F;"; break;
-		default:
-			if (output)
-				*output = character;
-			return 1;
+		case '&':  ENTITY("&amp;");  break;
+		case '<':  ENTITY("&lt;");   break;
+		case '>':  ENTITY("&gt;");   break;
+		case '"':  ENTITY("&quot;"); break;
+		case '\'': ENTITY("&#x27;"); break;
+		case '/':  ENTITY("&#x2F;"); break;
 	}
-	if (output)
-		strncpy(output, entity, strlen(entity));
-	return strlen(entity);
+	#undef ENTITY
+
+	if (likely(output))
+		strncpy(output, entity, len);
+	return len;
 }
 
 #endif // UTIL_H

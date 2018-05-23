@@ -5,9 +5,8 @@
 #include <sys/socket.h>
 #include <libowfat/byte.h>
 #include <libowfat/io.h>
+#include "util.h"
 
-#define likely(x)      __builtin_expect(!!(x), 1)
-#define unlikely(x)    __builtin_expect(!!(x), 0)
 
 // We allocate buffers in chunks of this size
 static const size_t chunk_size = 10*4096; // 10 pages

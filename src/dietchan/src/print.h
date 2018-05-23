@@ -8,7 +8,7 @@
 #include "context.h"
 
 #define S(s) ((struct tpl_part){T_STR, (long long)s, strlen(s)})
-#define E(s) ((struct tpl_part){T_ESC_HTML, (long long)s})
+#define E(s) ((struct tpl_part){T_ESC_HTML, (long long)s, strlen(s)})
 #define I(i) ((struct tpl_part){T_INT, (long long)i})
 #define U(u) ((struct tpl_part){T_UINT, (long long)u})
 #define L(l) ((struct tpl_part){T_LONG, (long long)l})
