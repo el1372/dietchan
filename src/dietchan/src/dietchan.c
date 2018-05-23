@@ -167,6 +167,8 @@ void accept_connections(int64 s, struct listener *listener, int limit)
 			io_eagain_read(s);
 		if (a<0) return;
 
+		io_nonblock(a);
+
 		http_context *http = http_new(a);
 
 		http->ip.version = listener->ip.version;
