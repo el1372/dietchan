@@ -22,6 +22,7 @@ struct ip_range {
 };
 
 int ip_in_range(const struct ip_range *range, const struct ip *ip);
+void normalize_ip_range(struct ip_range *range);
 int ip_range_eq(void *a, void *b, void *extra);
 uint64 ip_range_hash(void *range, void *extra);
 int is_external_ip(struct ip *ip);

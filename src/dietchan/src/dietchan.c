@@ -33,6 +33,7 @@
 #include "pages/dashboard.h"
 #include "pages/edit_user.h"
 #include "pages/edit_board.h"
+#include "pages/banned.h"
 
 static int  default_get_param (http_context *http, char *key, char *val)
 {
@@ -101,6 +102,11 @@ int request (http_context *http, http_method method, char *path, char *query)
 	if (str_start(path, PREFIX "/uploads/") ||
 	    str_start(path, PREFIX "/captchas/")) {
 		static_page_init(http);
+		goto found;
+	}
+
+	if (str_equal(path, PREFIX "/banned")) {
+		banned_page_init(http);
 		goto found;
 	}
 

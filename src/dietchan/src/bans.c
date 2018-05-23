@@ -23,9 +23,9 @@ int ban_matches_board(struct ban *ban, uint64 board_id)
 }
 
 
-void find_bans(struct ip *ip, struct board *board, find_bans_callback callback, void *extra)
+void find_bans(struct ip *ip, find_bans_callback callback, void *extra)
 {
-	uint64 now = time(NULL);
+	//uint64 now = time(NULL);
 
 	struct ip_range range = {0};
 	range.ip = *ip;
@@ -37,13 +37,13 @@ void find_bans(struct ip *ip, struct board *board, find_bans_callback callback, 
 
 	while (range.range >= 0) {
 		for (struct ban *ban = db_hashmap_get(&ban_tbl, &range); ban; ban=ban_next_in_bucket(ban)) {
-			if (ban_enabled(ban) &&
-			    ban_target(ban) == BAN_TARGET_POST &&
-			    ((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
-			    ban_matches_ip(ban, ip) &&
-			    ban_matches_board(ban, board_id(board))) {
+			if (ban_enabled(ban)/* &&
+			    ban_target(ban) == BAN_TARGET_POST*//* &&*/
+			    /*((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&*/
+			    /*ban_matches_ip(ban, ip) *//*&&
+			    ban_matches_board(ban, board_id(board))*/) {
 
-			    callback(ban, extra);
+			    callback(ban, ip, extra);
 			}
 		}
 		--(range.range);
@@ -54,13 +54,17 @@ struct is_banned_info {
 	enum ban_target target;
 	enum ban_type type;
 	int64 expires;
+	struct board *board;
 };
 
-static void is_banned_callback(struct ban *ban, void *extra)
+static void is_banned_callback(struct ban *ban, struct ip *ip, void *extra)
 {
+	uint64 now = time(NULL);
 	struct is_banned_info *info = (struct is_banned_info*)extra;
 	if (ban_type(ban) == info->type &&
-	    ban_target(ban) == info->target) {
+	    ban_target(ban) == info->target &&
+	    ((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
+	    (!info->board || ban_matches_board(ban, board_id(info->board)))) {
 		if (ban_duration(ban) > 0) {
 			int64 expires = ban_timestamp(ban) + ban_duration(ban);
 			if (expires > info->expires)
@@ -76,7 +80,8 @@ int64 is_banned(struct ip *ip, struct board *board, enum ban_target target)
 	struct is_banned_info info = {0};
 	info.type = BAN_BLACKLIST;
 	info.target = target;
-	find_bans(ip, board, is_banned_callback, &info);
+	info.board = board;
+	find_bans(ip, is_banned_callback, &info);
 	return info.expires;
 }
 
@@ -85,7 +90,8 @@ int64 is_flood_limited(struct ip *ip, struct board *board, enum ban_target targe
 	struct is_banned_info info = {0};
 	info.type = BAN_FLOOD;
 	info.target = target;
-	find_bans(ip, board, is_banned_callback, &info);
+	info.board = board;
+	find_bans(ip, is_banned_callback, &info);
 	return info.expires;
 }
 
@@ -94,11 +100,13 @@ int64 is_captcha_required(struct ip *ip, struct board *board, enum ban_target ta
 	struct is_banned_info info = {0};
 	info.type = BAN_CAPTCHA_PERMANENT;
 	info.target = target;
-	find_bans(ip, board, is_banned_callback, &info);
+	info.board = board;
+	find_bans(ip, is_banned_callback, &info);
 	if (!info.expires) {
 		info.type = BAN_CAPTCHA_ONCE;
 		info.target = target;
-		find_bans(ip, board, is_banned_callback, &info);
+		info.board = board;
+		find_bans(ip, is_banned_callback, &info);
 	}
 	return info.expires;
 }

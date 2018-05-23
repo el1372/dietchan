@@ -7,8 +7,8 @@
 int ban_matches_ip(struct ban *ban, struct ip *ip);
 int ban_matches_board(struct ban *ban, uint64 board_id);
 
-typedef void (*find_bans_callback)(struct ban *ban, void *extra);
-void find_bans(struct ip *ip, struct board *board, find_bans_callback callback, void *extra);
+typedef void (*find_bans_callback)(struct ban *ban, struct ip *ip, void *extra);
+void find_bans(struct ip *ip, find_bans_callback callback, void *extra);
 
 int64 is_banned(struct ip *ip, struct board *board, enum ban_target target);
 int64 is_flood_limited(struct ip *ip, struct board *board, enum ban_target target);
