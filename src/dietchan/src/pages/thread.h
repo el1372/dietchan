@@ -1,5 +1,5 @@
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef THREAD_PAGE_H
+#define THREAD_PAGE_H
 
 #include "../config.h"
 #include "../http.h"
@@ -17,4 +17,4 @@ struct thread_page {
 
 void thread_page_init(http_context *context);
 
-#endif // THREAD_H
+#endif // THREAD_PAGE_H

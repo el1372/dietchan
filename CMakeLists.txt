@@ -41,7 +41,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
 	captcha
-	GIT_REPOSITORY "git@ssh.gitgud.io:zuse/captcha.git"
+	GIT_REPOSITORY "https://gitgud.io/zuse/captcha.git"
 	GIT_TAG master
 	SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/captcha"
 	PREFIX "${PROJECT_SOURCE_DIR}/.prefix/captcha"
@@ -60,6 +60,8 @@ ExternalProject_Add(
 	UPDATE_COMMAND ""
 	INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/src/dietchan/dietchan ${PROJECT_SOURCE_DIR}
 	CMAKE_ARGS -DCMAKE_C_COMPILER=${BUILD_ROOT}/diet-gcc
+	           -DCMAKE_LIBRARY_PATH=${PROJECT_SOURCE_DIR}/src/libowfat
+	           -DCMAKE_INCLUDE_PATH=${PROJECT_SOURCE_DIR}/src
 	           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )
 

@@ -1,4 +1,4 @@
 [submodule "src/captcha"]
 	path = src/captcha
-	url = git@ssh.gitgud.io:zuse/captcha.git
+	url = https://gitgud.io/zuse/captcha.git
 	ignore = untracked
