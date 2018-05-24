@@ -292,7 +292,7 @@ static void extract_meta_command(const char *file, const char *mime_type, char *
 	if (case_starts(mime_type, "video/")) {
 		strcpy(command, "/bin/ffprobe -v error -show_entries format=duration:stream=index,codec_types,width,height -of default=noprint_wrappers=1 ");
 		strcat(command, file);
-	} else if (case_starts(mime_type, "image/")) {
+	} else {
 		strcpy(command, "/bin/magick identify -format 'width=%[fx:w]\\nheight=%[fx:h]\\n' ");
 		strcat(command, file);
 	}
