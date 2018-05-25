@@ -855,7 +855,8 @@ static int  mod_page_finish (http_context *http)
 		}
 
 		// Remember redirect
-		PRINT(S("<input type='hidden' name='redirect' value='"), E(page->redirect), S("'>"));
+		if (page->redirect)
+			PRINT(S("<input type='hidden' name='redirect' value='"), E(page->redirect), S("'>"));
 	}
 
 	if (do_report && do_it)
