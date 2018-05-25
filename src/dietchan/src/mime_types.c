@@ -19,7 +19,7 @@ const struct mime_type mime_types[] = {
 };
 
 const char *allowed_mime[] = {
-	"image/jpeg", "image/jpg", "image/png", "image_gif", "application/pdf", 0
+	"image/jpeg", "image/jpg", "image/png", "image/gif", "video/webm", "application/pdf", 0
 };
 
 const char* get_extension_for_mime_type(const char *mime_type)

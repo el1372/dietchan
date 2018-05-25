@@ -4,9 +4,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <assert.h>
 #include <libowfat/byte.h>
 #include <libowfat/buffer.h>
+#include <libowfat/str.h>
 #include <libowfat/case.h>
 #include <libowfat/open.h>
 #include <libowfat/scan.h>
@@ -151,7 +153,7 @@ static void start_mime_check_job(struct upload_job *upload_job)
 	assert(upload_job->state == UPLOAD_JOB_UPLOADED);
 
 	char command[512];
-	strcpy(command, "/bin/file --mime-type --brief ");
+	strcpy(command, "/bin/file --mime-type --brief -k -r ");
 	strcat(command, upload_job->file_path);
 
 	job_context *job = job_new(command);
@@ -175,13 +177,39 @@ static void finished_mime_check_job(struct upload_job *upload_job)
 {
 	assert(upload_job->state == UPLOAD_JOB_MIMECHECKING);
 
-	upload_job->mime_type = strdup(array_start(&upload_job->job_output));
-	remove_trailing_space(upload_job->mime_type);
+	// Parse mime types. Output may contain multiple types like this:
+	// video/webm
+	// - application/octet-stream
+	char *s = array_start(&upload_job->job_output);
+	char **mime_types = alloca(strlen(s)*sizeof(char*));
+	char **t = &mime_types[0];
+	int end=0;
+	while (!end) {
+		char *nl = &s[str_chr(s, '\n')];
+		end = *nl == '\0';
+		*nl = '\0';
+		while (isspace(*s)) ++s;
+		if (*s=='-') ++ s;
+		while (isspace(*s)) ++s;
+		remove_trailing_space(s);
 
-	upload_job->file_ext = get_extension_for_mime_type(upload_job->mime_type);
+		if (s[0] != '\0')
+			*(t++) = s;
 
-	if (upload_job->mime)
-		upload_job->mime(upload_job, upload_job->mime_type);
+		s = nl + 1;
+	}
+
+	*t = 0;
+
+	if (upload_job->mime) {
+		const char *mime = upload_job->mime(upload_job, mime_types);
+		if (mime) {
+			upload_job->mime_type = strdup(mime);
+			upload_job->file_ext = get_extension_for_mime_type(mime);
+		} else {
+			upload_job->ok = 0;
+		}
+	}
 
 	upload_job->state = UPLOAD_JOB_MIMECHECKED;
 

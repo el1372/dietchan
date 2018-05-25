@@ -45,7 +45,7 @@ static int  post_page_file_end (http_context *http);
 static int  post_page_finish (http_context *http);
 static void post_page_finalize(http_context *http);
 
-static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_type);
+static char *post_page_upload_job_mime(struct upload_job *upload_job, char **mime_types);
 static void post_page_upload_job_finish(struct upload_job *upload_job);
 static void post_page_upload_job_error(struct upload_job *upload_job, int status, char *message);
 
@@ -254,39 +254,50 @@ static int post_page_file_end (http_context *http)
 }
 
 
-static void post_page_upload_job_mime(struct upload_job *upload_job, char *mime_type)
+static char* post_page_upload_job_mime(struct upload_job *upload_job, char **mime_types)
 {
 	// Validate mime type
 	http_context *http = (http_context*)upload_job->info;
 	struct post_page *page = (struct post_page*)http->info;
 
-	if (!is_mime_allowed(mime_type)) {
-	    PRINT_STATUS_HTML("415 Unsupported media type");
-		PRINT_SESSION();
-		PRINT_BODY();
-		PRINT(S("<h1>Error</h1>"
-		        "<p>Unsupported mime type: "), E(mime_type), S("<br>"),
-		        E(upload_job->original_name), S("</p>"));
-
-		PRINT_EOF();
-		upload_job_abort(upload_job);
-		page->aborted = 1;
-	}
-
 	const char *original_ext = strrchr(upload_job->original_name, '.');
-	if (!is_valid_extension(mime_type, original_ext)) {
-	    PRINT_STATUS_HTML("415 Unsupported media type");
-		PRINT_SESSION();
-		PRINT_BODY();
-		PRINT(S("<h1>Error</h1>"
-		        "<p>Invalid file extension '"),original_ext?E(original_ext):S(""),
-		      S("' for mime type '"), E(mime_type), S("'<br>"),
-		      E(upload_job->original_name), S("</p>"));
 
-		PRINT_EOF();
+	char **mime=0;
+
+	// Check if any detected mime type is allowed
+	for (mime=&mime_types[0]; *mime; ++mime) {
+		if (is_mime_allowed(*mime) && is_valid_extension(*mime, original_ext))
+			break;
+	}
+
+	// If no valid mime was found, print error message and abort
+	if (!(*mime)) {
+		if (!is_mime_allowed(mime_types[0])) {
+			PRINT_STATUS_HTML("415 Unsupported media type");
+			PRINT_SESSION();
+			PRINT_BODY();
+			PRINT(S("<h1>Error</h1>"
+			        "<p>Unsupported mime type: "), E(mime_types[0]), S("<br>"),
+			        E(upload_job->original_name), S("</p>"));
+
+			PRINT_EOF();
+		} else if (!is_valid_extension(mime_types[0], original_ext)) {
+			PRINT_STATUS_HTML("415 Unsupported media type");
+			PRINT_SESSION();
+			PRINT_BODY();
+			PRINT(S("<h1>Error</h1>"
+			        "<p>Invalid file extension '"),original_ext?E(original_ext):S(""),
+			      S("' for mime type '"), E(mime_types[0]), S("'<br>"),
+			      E(upload_job->original_name), S("</p>"));
+
+			PRINT_EOF();
+		}
+
 		upload_job_abort(upload_job);
 		page->aborted = 1;
 	}
+
+	return *mime;
 }
 
 static void post_page_upload_job_finish(struct upload_job *upload_job)

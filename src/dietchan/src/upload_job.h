@@ -37,8 +37,9 @@ struct upload_job {
 
 	// Info for callbacks
 	void *info;
-	// Called when mime type is known. Return 0 if accepted, ERROR if not accepted.
-	void (*mime)(struct upload_job *upload_job, char *mime_type);
+	// Called when mime type is known. mime_types contains an array of possible mime types, terminated by 0.
+	// Return matching mime type if accepted, 0 if not accepted.
+	char* (*mime)(struct upload_job *upload_job, char **mime_types);
 	// Called when meta information is known.
 	void (*meta)(struct upload_job *upload_job, int64 width, int64 height, double duration);
 	// Called when everything is done, i.e. mime type checked and thumbnail generated.
