@@ -473,7 +473,7 @@ static ssize_t http_read_post_data(http_context *http, char *buf, size_t length)
 	memcpy(zero_terminated, buf, param_length);
 	zero_terminated[param_length] = '\0';
 
-	if (http_read_param(http, buf, http->post_param, MAX_POST_PARAM_LENGTH) == ERROR)
+	if (http_read_param(http, zero_terminated, http->post_param, MAX_POST_PARAM_LENGTH) == ERROR)
 		return ERROR;
 	return param_length;
 }
