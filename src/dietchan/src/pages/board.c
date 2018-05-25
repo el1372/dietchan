@@ -153,7 +153,7 @@ static int  board_page_finish (http_context *http)
 	PRINT_STATUS_HTML("200 OK");
 	PRINT_SESSION();
 	PRINT_BODY();
-	print_page_header(http),
+	print_page_header(http, S("/"), E(board_name(board)), S("/ – "), E(board_title(board)));
 	print_top_bar(http, page->user, page->url);
 	PRINT(S("<h1>/"), E(board_name(board)), S("/ – "), E(board_title(board)), S("</h1>"
 	        "<hr>"));

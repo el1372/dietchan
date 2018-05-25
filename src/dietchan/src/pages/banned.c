@@ -42,6 +42,12 @@ static int banned_page_header (http_context *http, char *key, char *val)
 	return 0;
 }
 
+static void banned_page_print_header(http_context *http, const char *title)
+{
+	print_page_header(http, E(title));
+	PRINT(S("<h1>"), E(title), S("</h1>"));
+}
+
 static void banned_page_ban_callback(struct ban *ban, struct ip *ip, void *extra)
 {
 	http_context *http = extra;
@@ -56,8 +62,9 @@ static void banned_page_ban_callback(struct ban *ban, struct ip *ip, void *extra
 		struct ip_range range=ban_range(ban);
 		normalize_ip_range(&range);
 
-		PRINT(!page->any_ban?S("<h1>Gebannt</h1>"):S(""), S(
-		        "<div class='ban'>"
+		if (!page->any_ban)
+			banned_page_print_header(http, "Gebannt");
+		PRINT(S("<div class='ban'>"
 		        "<p>Deine IP ("), IP(*ip), S(") gehört zum Subnetz "), IP(range.ip), S("/"), I(range.range), S(
 		        ", welches aus folgendem Grund gebannt wurde:</p>"
 		        "<p>"), ban_reason(ban)?E(ban_reason(ban)):S("<i>Kein Grund angegeben</i>"), S("</p>"
@@ -91,7 +98,6 @@ static int banned_page_finish (http_context *http)
 	PRINT_STATUS_HTML("200 OK");
 	PRINT_BODY();
 
-	print_page_header(http);
 
 	find_bans(&page->ip, banned_page_ban_callback, http);
 	if (page->x_real_ip.version)
@@ -103,8 +109,10 @@ static int banned_page_finish (http_context *http)
 		find_bans(ip, banned_page_ban_callback, http);
 	}
 
-	if (!page->any_ban)
+	if (!page->any_ban) {
+		banned_page_print_header(http, "Nicht gebannt");
 		PRINT(S("<p>Deine IP scheint derzeit nicht gebannt zu sein.</p>"));
+	}
 
 	print_page_footer(http);
 

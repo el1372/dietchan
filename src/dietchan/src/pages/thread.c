@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 #include <libowfat/case.h>
 #include <libowfat/fmt.h>
 #include <libowfat/byte.h>
@@ -13,6 +14,7 @@
 #include "../captcha.h"
 #include "../bans.h"
 #include "../permissions.h"
+#include "../bbcode.h"
 
 static int thread_page_request (http_context *http, http_method method, char *path, char *query);
 static int thread_page_header (http_context *http, char *key, char *val);
@@ -132,11 +134,37 @@ static int thread_page_finish (http_context *http)
 		return 0;
 	}
 
+	struct post *post = thread_first_post(thread);
+
 	PRINT_STATUS_HTML("200 OK");
 	PRINT_SESSION();
 	PRINT_BODY();
 
-	print_page_header(http);
+	char title[256];
+	title[0] = '\0';
+	if (post_subject(post)) {
+		// If subject is set, use it as title
+		const char *subject = post_subject(post);
+		while (isspace(*subject)) ++subject;
+		strncpy(title, subject, sizeof(title));
+		title[sizeof(title)-1] = '\0';
+	}
+	if (title[0] == '\0') {
+		// If no subject is set, generate one from the post content
+		char *stripped = malloc(strlen(post_text(post))+1);
+		strcpy(stripped, post_text(post));
+		strip_bbcode(stripped);
+		while (isspace(*stripped)) ++stripped;
+		char *nl = &stripped[str_chr(stripped, '\n')];
+		*nl = '\0';
+		size_t len = nl-stripped;
+		if (len>sizeof(title))
+			len = sizeof(title);
+		strncpy(title, stripped, len);
+		title[len] = '\0';
+	}
+
+	print_page_header(http, S("/"), E(board_name(board)), S("/ – "), E(title));
 
 	print_top_bar(http, page->user, page->url);
 
@@ -155,7 +183,6 @@ static int thread_page_finish (http_context *http)
 
 	PRINT(S("<hr>"));
 
-	struct post *post = thread_first_post(thread);
 
 	PRINT(S("<form action='"),S(PREFIX), S("/mod' method='post'>"
 	        "<div class='thread'>"));

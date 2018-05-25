@@ -206,3 +206,39 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 	#undef CLOSE_TAG
 	#undef CLOSE_ALL
 }
+
+void strip_bbcode(char *buf)
+{
+	char *s=buf;
+	char *t=buf;
+	while (1) {
+		int open = 0;
+		const char *tag = 0;
+		size_t i=0;
+		switch (*s) {
+		case '\0':
+			*t++ = '\0';
+			return;
+		case ' ':
+		case '\t':
+			*t++ = ' ';
+			while (*s == ' ' || *s == '\t')
+				++s;
+			break;
+		case '\n':
+			*t++ = '\n';
+			while (isspace(*t))
+				++s;
+			break;
+		case '[':
+			if (i=scan_tag(s, &tag, &open))
+				s += i;
+			else
+				*t++ = *s++;
+			break;
+		default:
+			while (*s != '\0' && *s != '[')
+				*t++ = *s++;
+		}
+	}
+}

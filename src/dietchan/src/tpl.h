@@ -13,7 +13,23 @@
 #include "session.h"
 
 
-void print_page_header(http_context *http);
+//void print_page_header(http_context *http, const char *title);
+#define print_page_header(http, ...) \
+	do { \
+		PRINT(S("<!DOCTYPE html>" \
+		        "<html>" \
+		          "<head>" \
+		            "<title>"), \
+		            __VA_ARGS__, S( \
+		            "</title>" \
+		            "<style>")); \
+		write_page_css(http); \
+		PRINT(S(    "</style>" \
+		          "</head>" \
+		          "<body>")); \
+	} while(0)
+
+void write_page_css(http_context *http);
 void print_reply_form(http_context *http, int board, int thread, struct captcha *captcha);
 void print_mod_bar(http_context *http, int ismod);
 void print_page_footer(http_context *http);

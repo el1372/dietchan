@@ -369,18 +369,6 @@ void write_page_css(http_context *http)
 	        ));
 }
 
-void print_page_header(http_context *http)
-{
-	PRINT(S("<!DOCTYPE html>"
-	        "<html>"
-	          "<head>"
-	            "<style>"));
-	write_page_css(http);
-	PRINT(S(    "</style>"
-	          "</head>"
-	          "<body>"));
-}
-
 void print_page_footer(http_context *http)
 {
 	PRINT(S(    "<div class='footer'>"

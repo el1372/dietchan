@@ -77,7 +77,7 @@ static int  login_page_finish (http_context *http)
 		PRINT_STATUS_HTML("200 OK");
 		PRINT_SESSION();
 		PRINT_BODY();
-		print_page_header(http);
+		print_page_header(http, S("Login"));
 		PRINT(S("<div class='top-bar'>"));
 		print_board_bar(http);
 		PRINT(S("</div>"
