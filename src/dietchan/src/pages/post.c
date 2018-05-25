@@ -163,14 +163,6 @@ static int post_page_file_begin (http_context *http, char *name, char *filename,
 	upload_job->error = post_page_upload_job_error;
 	page->current_upload_job = upload_job;
 
-	++page->pending;
-
-	// Since uploads are handled asynchronously, we must increase the reference count of the
-	// http_context. The reason is that the connection could already be closed by the client
-	// when the asynchronous job completes. If we didn't increment the reference count, the closing
-	// of the connection would cause the http_context to be destroyed, leading to a crash later.
-	context_addref(ctx);
-
 	return 0;
 }
 
@@ -198,9 +190,6 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 
 		upload_job_abort(page->current_upload_job);
 		page->aborted = 1;
-
-		--page->pending;
-		context_unref(ctx);
 		return ERROR;
 	}
 
@@ -216,12 +205,8 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 
 		upload_job_abort(page->current_upload_job);
 		page->aborted = 1;
-
-		--page->pending;
-		context_unref(ctx);
 		return ERROR;
 	}
-
 
 	upload_job_write_content(page->current_upload_job, buf, length);
 
@@ -239,15 +224,19 @@ static int post_page_file_end (http_context *http)
 
 	if (page->current_upload_job->size == 0) {
 		// Empty form field, ignore
-		--page->pending;
-		context_unref(ctx);
-
 		upload_job_finalize(page->current_upload_job);
 		page->current_upload_job = 0;
 		ssize_t upload_job_count = array_length(&page->upload_jobs, sizeof(struct upload_job));
 		array_truncate(&page->upload_jobs, sizeof(struct upload_job), upload_job_count - 1);
 	} else {
 		upload_job_write_eof(page->current_upload_job);
+		++page->pending;
+
+		// Since uploads are handled asynchronously, we must increase the reference count of the
+		// http_context. The reason is that the connection could already be closed by the client
+		// when the asynchronous job completes. If we didn't increment the reference count, the closing
+		// of the connection would cause the http_context to be destroyed, leading to a crash later.
+		context_addref(ctx);
 	}
 
 	return 0;
@@ -684,8 +673,6 @@ static int post_page_finish (http_context *http)
 static void post_page_finalize (http_context *http)
 {
 	struct post_page *page = (struct post_page*)http->info;
-
-	assert(page->pending == 0);
 
 	if (page->subject)    free(page->subject);
 	if (page->username)   free(page->username);

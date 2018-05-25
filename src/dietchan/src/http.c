@@ -408,6 +408,12 @@ static ssize_t http_read_body(http_context *http, char *buf, size_t length)
 	if (http->content_received > http->content_length)
 		return ERROR;
 
+	// In case connection was aborted while sending body
+	if (length == 0 && http->content_received < http->content_length) {
+		if (http->error) http->error(http);
+		return ERROR;
+	}
+
 	switch(http->multipart_state) {
 		case MULTIPART_STATE_NONE:
 			// Could be POST data
