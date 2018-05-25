@@ -405,17 +405,17 @@ static int  mod_page_finish (http_context *http)
 	if (do_delete_ban) {
 		if (!ban) {
 			PRINT(S("<p class='error'>Bann existiert nicht.</p>"));
-			goto end;
+			do_it = 0;
 		}
 		if (!can_delete_ban(page->user,ban)) {
 			PRINT(S("<p class='error'>Du kannst diesen Bann nicht löschen.</p>"));
-			goto end;
+			do_it = 0;
 		}
 	}
 
 	if ((do_delete || do_report || do_pin || do_close) && post_count <= 0) {
 		PRINT(S("<p>Kein Post ausgewählt.</p>"));
-		goto end;
+		do_it = 0;
 	}
 
 	// ---------------------------------------------------------------------------------------------
