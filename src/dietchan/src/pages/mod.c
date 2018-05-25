@@ -413,6 +413,11 @@ static int  mod_page_finish (http_context *http)
 		}
 	}
 
+	if ((do_delete || do_report || do_pin || do_close) && post_count <= 0) {
+		PRINT(S("<p>Kein Post ausgewählt.</p>"));
+		goto end;
+	}
+
 	// ---------------------------------------------------------------------------------------------
 
 	if (do_it)
