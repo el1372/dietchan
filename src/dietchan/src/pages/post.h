@@ -39,6 +39,7 @@ struct post_page {
 	struct upload_job *current_upload_job;
 	int    pending;
 	int    aborted;
+	int    success;
 };
 
 void post_page_init(http_context *context);

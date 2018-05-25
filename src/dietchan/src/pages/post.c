@@ -348,11 +348,6 @@ static int post_page_finish (http_context *http)
 
 	// Fake successful error code for bots in case they evaluate it
 	if (page->is_bot) {
-		// If any uploads happened, mark for deletion
-		for (int i=0; i<array_length(&page->upload_jobs, sizeof(struct upload_job)); ++i) {
-			struct upload_job *upload_job = array_get(&page->upload_jobs, sizeof(struct upload_job), i);
-			upload_job_abort(upload_job);
-		}
 		PRINT_STATUS_HTML("200 OK");
 		PRINT_SESSION();
 		PRINT_BODY();
@@ -508,6 +503,8 @@ static int post_page_finish (http_context *http)
 		}
 	}
 
+	// We now know we can create the post
+	page->success = 1;
 
 	begin_transaction();
 
@@ -700,6 +697,8 @@ static void post_page_finalize (http_context *http)
 	ssize_t upload_job_count = array_length(&page->upload_jobs, sizeof(struct upload_job));
 	for (ssize_t i=0; i<upload_job_count; ++i) {
 		struct upload_job *upload_job = array_get(&page->upload_jobs, sizeof(struct upload_job), i);
+		if (!page->success)
+			upload_job_abort(upload_job);
 		upload_job_finalize(upload_job);
 	}
 	array_reset(&page->upload_jobs);
