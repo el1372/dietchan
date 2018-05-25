@@ -36,7 +36,7 @@ void print_reply_form(http_context *http, int board, int thread, struct captcha 
 	        "<table>"
 	          "<tr>"
 	            "<th colspan='3'>"
-	            "<h3>"), (thread == -1)?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
+	            "<h3>"), (thread != -1)?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
 	          "</th>"
 	          "</tr>"
 	          "<tr>"
