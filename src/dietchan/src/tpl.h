@@ -30,7 +30,13 @@
 	} while(0)
 
 void write_page_css(http_context *http);
-void print_reply_form(http_context *http, int board, int thread, struct captcha *captcha);
+
+enum {
+	WRITE_REPLY_AS_MOD   = 1 << 0,
+	WRITE_REPLY_AS_ADMIN = 1 << 1
+};
+
+void print_reply_form(http_context *http, struct board *board, struct thread *thread, struct captcha *captcha, struct user *user);
 void print_mod_bar(http_context *http, int ismod);
 void print_page_footer(http_context *http);
 void print_board_bar(http_context *http);

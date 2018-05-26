@@ -157,7 +157,7 @@ static int  board_page_finish (http_context *http)
 	print_top_bar(http, page->user, page->url);
 	PRINT(S("<h1>/"), E(board_name(board)), S("/ – "), E(board_title(board)), S("</h1>"
 	        "<hr>"));
-	print_reply_form(http, board_id(board), -1, captcha),
+	print_reply_form(http, board, 0, captcha, page->user),
 	print_board_nav(http, board, page->page);
 	PRINT(S("<hr>"
 	        "<form action='"), S(PREFIX), S("/mod' method='post'>"));

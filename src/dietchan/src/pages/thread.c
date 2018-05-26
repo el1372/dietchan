@@ -177,7 +177,7 @@ static int thread_page_finish (http_context *http)
 		captcha = random_captcha();
 	}
 
-	print_reply_form(http, board_id(board), page->thread_id, captcha);
+	print_reply_form(http, board, thread, captcha, page->user);
 
 	write_thread_nav(http, thread);
 

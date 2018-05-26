@@ -15,8 +15,9 @@
 #include "captcha.h"
 #include "bbcode.h"
 #include "print.h"
+#include "permissions.h"
 
-void print_reply_form(http_context *http, int board, int thread, struct captcha *captcha)
+void print_reply_form(http_context *http, struct board *board, struct thread *thread, struct captcha *captcha, struct user *user)
 {
 	PRINT(S("<form class='reply' action='"), S(PREFIX), S("/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"), S(
 	        // Bot trap
@@ -36,7 +37,7 @@ void print_reply_form(http_context *http, int board, int thread, struct captcha 
 	        "<table>"
 	          "<tr>"
 	            "<th colspan='3'>"
-	            "<h3>"), (thread != -1)?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
+	            "<h3>"), thread?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
 	          "</th>"
 	          "</tr>"
 	          "<tr>"
@@ -47,13 +48,25 @@ void print_reply_form(http_context *http, int board, int thread, struct captcha 
 	            "<th><label for='subject'>Betreff</label></th>"
 	            "<td><input name='subject' type='text'></td>"
 	            "<td width='1'>"
-	             "<input type='submit' value='"), (thread!=-1)?S("Antwort erstellen"):S("Faden erstellen"), S("'>"
+	             "<input type='submit' value='"), thread?S("Antwort erstellen"):S("Faden erstellen"), S("'>"
 	            "</td>"
 	          "</tr>"
 	          "<tr>"
-	            "<th><label for='username2'>Name</label></th>"
-	            "<td colspan='2'><input name='username2' type='text' autocomplete='nein'></td>"
-	          "</tr>"
+	            "<th><label for='username2'>Name</label></th>"));
+	if (user && is_mod_for_board(user, board)) {
+		PRINT(S("<td><input name='username2' type='text' autocomplete='nein'></td>"
+		        "<td>"
+		          "<select name='role'>"
+		            "<option value=''>Anonym</option>"
+		            "<option value='mod'>Mod</option>"),
+		            (user_type(user) == USER_ADMIN)?
+		              S("<option value='admin'>Admin</option>"):S(""), S(
+		          "</select>"
+		        "</td>"));
+	} else {
+		PRINT(S("<td colspan='2'><input name='username2' type='text' autocomplete='nein'></td>"));
+	}
+	PRINT(S(  "</tr>"
 	          "<tr>"
 	            "<th><label for='text2'>Kommentar</label></th>"
 	            "<td colspan='2'><textarea name='text2'></textarea></td>"
@@ -89,15 +102,27 @@ void print_reply_form(http_context *http, int board, int thread, struct captcha 
 		          "<td colspan='2'><input type='text' name='captcha' autocomplete='off'></td>"
 		        "</tr>"));
 	}
+	if (user && is_mod_for_board(user, board)) {
+		PRINT(S("<tr>"
+		          "<th>Moderation</th>"
+		          "<td colspan='2'>"
+		            "<input type='checkbox' name='pin' id='reply-pin' value='1'> "
+		            "<label for='reply-pin'>Anpinnen</label> "
+		            "<input type='checkbox' name='close' id='reply-close' value='1'> "
+		            "<label for='reply-pin'>Schließen</label>"
+		          "</td>"
+		        "</tr>"));
+	}
 	PRINT(S("</table>"));
 	if (captcha) {
 		PRINT(S("<input name='captcha_id' value='"), X(captcha_id(captcha)), S("' type='hidden'>"
 		        "<input name='captcha_token' value='"), X(captcha_token(captcha)), S("' type='hidden'>"));
 	}
-	if (thread != -1)
-		PRINT(S("<input name='thread' value='"), UL(thread), S("' type='hidden'>"));
+	if (thread)
+		PRINT(S("<input name='thread' value='"), UL(post_id(thread_first_post(thread))), S("' type='hidden'>"));
 	else
-		PRINT(S("<input name='board' value='"), UL(board), S("' type='hidden'>"));
+		PRINT(S("<input name='board' value='"), UL(board_id(board)), S("' type='hidden'>"));
+
 	PRINT(S("</form>"));
 }
 
@@ -197,7 +222,8 @@ void write_page_css(http_context *http)
 	        "form.reply textarea,"
 	        "form.reply input[type='text'],"
 	        "form.reply input[type='file'],"
-	        "form.reply input[type='password'] {"
+	        "form.reply input[type='password'],"
+	        "form.reply select {"
 	          "width: 100%;"
 	          "box-sizing: border-box;"
 	        "}"
@@ -360,6 +386,14 @@ void write_page_css(http_context *http)
 	        "span.ip {"
 	          "color: #35f;"
 	        "}"
+	        ".mod {"
+	          "font-weight: bold;"
+	          "color: #c0f;"
+	        "}"
+	        ".admin {"
+	          "font-weight: bold;"
+	          "color: #e00;"
+	        "}"
 	        ".top-bar-right {"
 	          "float: right;"
 	        "}"
@@ -511,8 +545,13 @@ void print_post(http_context *http, struct post *post, int absolute_url, int fla
 	                    "<b>"), E(post_subject(post)), S("</b>"
 	                  "</span>"),
 	                  (post_subject(post)[0] != '\0')?S("<span class='space'> </span>"):S(""),S(
-	                  "<span class='username'>"),
-	                  (post_username(post)[0] == '\0')?E(DEFAULT_NAME):E(post_username(post)),S(
+	                  "<span class='username"),
+	                  (post_user_role(post) == USER_ADMIN)?S(" admin"):S(""),
+	                  (post_user_role(post) == USER_MOD)  ?S(" mod"):S(""),
+	                  S("'>"),
+	                  (post_username(post)[0] == '\0')?E(DEFAULT_NAME):E(post_username(post)),
+	                  (post_user_role(post) == USER_ADMIN)?S(" ## Admin"):S(""),
+	                  (post_user_role(post) == USER_MOD)  ?S(" ## Mod"):S(""), S(
 	                  "</span><span class='space'> </span>"));
 	if (flags & WRITE_POST_IP) {
 		if (!post_x_real_ip(post).version || is_external_ip(&post_ip(post)))

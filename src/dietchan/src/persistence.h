@@ -309,6 +309,7 @@ struct post {
 	              uint64 x_forwarded_for_count;
 	/* ip* */     db_ptr x_forwarded_for;
 	              db_ptr useragent;
+	              uint64 user_role;
 	/* char* */   db_ptr username;
 	/* char* */   db_ptr password;
 	/* char* */   db_ptr subject;
@@ -339,6 +340,8 @@ struct post {
 #define post_set_useragent(o,v)         set_str(o, useragent, v)
 #define post_username(o)                get_str(o, username)
 #define post_set_username(o,v)          set_str(o, username, v)
+#define post_user_role(o)               get_val(o, user_role)
+#define post_set_user_role(o,v)         set_val(o, user_role, v)
 #define post_password(o)                get_str(o, password)
 #define post_set_password(o,v)          set_str(o, password, v)
 #define post_subject(o)                 get_str(o, subject)

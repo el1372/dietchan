@@ -30,6 +30,7 @@
 #include "../util.h"
 #include "../captcha.h"
 #include "../bans.h"
+#include "../permissions.h"
 
 
 #include "../tpl.h"
@@ -73,6 +74,7 @@ void post_page_init(http_context *http)
 	page->username = strdup("");
 	page->password = strdup("");
 	page->subject = strdup("");
+	page->role = strdup("");
 
 	page->ip = http->ip;
 }
@@ -107,6 +109,10 @@ static int post_page_post_param (http_context *http, char *key, char *val)
 	PARAM_STR("text2",         page->text);
 	PARAM_STR("password",      page->password);
 	PARAM_I64("sage",          page->sage);
+
+	PARAM_STR("role",          page->role);
+	PARAM_I64("pin",           page->mod_pin);
+	PARAM_I64("close",         page->mod_close);
 
 	PARAM_STR("captcha",       page->captcha);
 	PARAM_X64("captcha_id",    page->captcha_id);
@@ -373,17 +379,17 @@ static int post_page_finish (http_context *http)
 			return ERROR;
 		}
 
-		if (thread_closed(thread)) {
+		board = thread_board(thread);
+
+		if (thread_closed(thread) &&
+		    !(is_mod_for_board(page->user, board) && page->role[0] != '\0')) {
 			PRINT_STATUS_HTML("402 Verboten");
 			PRINT_SESSION();
 			PRINT_BODY();
 			PRINT(S("<h1>Faden geschlossen.</h1>"));
 			PRINT_EOF();
 			return ERROR;
-
 		}
-
-		board = thread_board(thread);
 	}
 
 	// Check if user is banned
@@ -512,6 +518,7 @@ static int post_page_finish (http_context *http)
 		thread_set_first_post(thread, post);
 		thread_set_last_post(thread, post);
 
+
 		// Prune oldest thread
 		if (thread_count > MAX_PAGES*THREADS_PER_PAGE)
 			delete_thread(board_last_thread(board));
@@ -522,7 +529,6 @@ static int post_page_finish (http_context *http)
 		post_set_next_post(prev, post);
 		post_set_prev_post(post, prev);
 		thread_set_last_post(thread, post);
-
 
 		// Bump thread unless post was saged or whole thread is saged.
 		if (!page->sage && !thread_saged(thread))
@@ -540,6 +546,14 @@ static int post_page_finish (http_context *http)
 	// Autoclose
 	if (thread_post_count(thread) == POST_LIMIT-1)
 		thread_set_closed(thread,1);
+
+	// Moderation
+	if (is_mod_for_board(page->user, board)) {
+		if (page->mod_pin)
+			thread_set_pinned(thread, 1);
+		if (page->mod_close)
+			thread_set_closed(thread, 1);
+	}
 
 	post_set_id(post, master_post_counter(master)+1);
 	master_set_post_counter(master, post_id(post));
@@ -572,6 +586,13 @@ static int post_page_finish (http_context *http)
 	}
 
 	post_set_sage(post, page->sage);
+
+	if (is_mod_for_board(page->user, board)) {
+		if (case_equals(page->role, "mod"))
+			post_set_user_role(post, USER_MOD);
+		else if (case_equals(page->role, "admin"))
+			post_set_user_role(post, USER_ADMIN);
+	}
 
 	for (int i=0; i<array_length(&page->upload_jobs, sizeof(struct upload_job)); ++i) {
 		struct upload_job *upload_job = array_get(&page->upload_jobs, sizeof(struct upload_job), i);
@@ -679,6 +700,7 @@ static void post_page_finalize (http_context *http)
 	if (page->text)       free(page->text);
 	if (page->password)   free(page->password);
 	if (page->user_agent) free(page->user_agent);
+	if (page->role)       free(page->role);
 	array_reset(&page->x_forwarded_for);
 
 	ssize_t upload_job_count = array_length(&page->upload_jobs, sizeof(struct upload_job));

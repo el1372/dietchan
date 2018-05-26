@@ -21,6 +21,7 @@ struct post_page {
 	int64  sage;
 	char  *subject;
 	char  *username;
+	char  *role;
 	char  *text;
 	char  *password;
 
@@ -32,6 +33,8 @@ struct post_page {
 	struct ip x_real_ip;
 	array x_forwarded_for;
 	char  *user_agent;
+	int64  mod_pin;
+	int64  mod_close;
 
 	int64  is_bot;
 
