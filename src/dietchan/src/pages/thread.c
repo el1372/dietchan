@@ -56,7 +56,7 @@ static int thread_page_request (http_context *http, http_method method, char *pa
 	if (!board_separator)
 		HTTP_FAIL(NOT_FOUND);
 
-	page->board = malloc(board_separator-relative_path);
+	page->board = malloc(board_separator-relative_path+1);
 	memcpy(page->board, relative_path, board_separator-relative_path);
 	page->board[board_separator-relative_path] = '\0';
 
