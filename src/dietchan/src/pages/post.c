@@ -590,7 +590,7 @@ static int post_page_finish (http_context *http)
 	if (is_mod_for_board(page->user, board)) {
 		if (case_equals(page->role, "mod"))
 			post_set_user_role(post, USER_MOD);
-		else if (case_equals(page->role, "admin"))
+		else if (case_equals(page->role, "admin") && user_type(page->user) == USER_ADMIN)
 			post_set_user_role(post, USER_ADMIN);
 	}
 
