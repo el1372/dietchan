@@ -72,10 +72,11 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 	            "<td colspan='2'><textarea name='text2'></textarea></td>"
 	          "</tr>"
 	          "<tr>"
-	            "<th><label for='text'>Dateien</label>"
+	            "<th title='Max. "), HK(MAX_UPLOAD_SIZE), S("B pro Datei'><label for='text'>Dateien</label>"
 	                 "<span class='sub-label'> (≤ 4)</span>"
 	            "</th>"
-	            "<td colspan='2'><input type='file' name='file' multiple required><br>"
+	            "<td colspan='2'>"
+	                "<input type='file' name='file' multiple required title='Max. "), HK(MAX_UPLOAD_SIZE), S("B pro Datei'><br>"
 	                "<input type='file' name='file' multiple required><br>"
 	                "<input type='file' name='file' multiple required><br>"
 	                "<input type='file' name='file' multiple required><br>"
@@ -386,12 +387,17 @@ void write_page_css(http_context *http)
 	        "span.ip {"
 	          "color: #35f;"
 	        "}"
-	        ".mod {"
+	        ".subject {"
 	          "font-weight: bold;"
+	        "}"
+	        ".username {"
+	          "font-weight: bold;"
+	          "color: #35f;"
+	        "}"
+	        ".mod {"
 	          "color: #c0f;"
 	        "}"
 	        ".admin {"
-	          "font-weight: bold;"
 	          "color: #e00;"
 	        "}"
 	        ".top-bar-right {"
@@ -407,6 +413,7 @@ void print_page_footer(http_context *http)
 {
 	PRINT(S(    "<div class='footer'>"
 	              "Proudly made without PHP, Java, Perl, MySQL, Postgres, MongoDB and Node.js.<br>"
+	              "<small><a href='https://gitgud.io/zuse/dietchan'>Quellcode</a></small>"
 	            "</div>"
 	          "</body>"
 	        "</html>"));
@@ -541,9 +548,7 @@ void print_post(http_context *http, struct post *post, int absolute_url, int fla
 	                      print_post_url(http, post, absolute_url);
 	PRINT(S(            "'>[l]</a>"
 	                  "</span><span class='space'> </span>"
-	                  "<span class='subject'>"
-	                    "<b>"), E(post_subject(post)), S("</b>"
-	                  "</span>"),
+	                  "<span class='subject'>"), E(post_subject(post)), S("</span>"),
 	                  (post_subject(post)[0] != '\0')?S("<span class='space'> </span>"):S(""),S(
 	                  "<span class='username"),
 	                  (post_user_role(post) == USER_ADMIN)?S(" admin"):S(""),

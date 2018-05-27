@@ -230,3 +230,75 @@ size_t fmt_time(char *out, uint64 ms)
 
 	return o-out;
 }
+
+size_t scan_duration(const char *s, uint64 *duration)
+{
+	const char *e = s;
+	while (1) {
+		size_t d;
+
+		e += scan_whiteskip(e);
+
+		uint64 t=0;
+		e += (d = scan_ulong(e,&t));
+		if (d<=0) break;
+
+		e += scan_whiteskip(e);
+
+		switch (*e++) {
+		case 's': t *= 1; break;
+		case 'm': t *= 60; break;
+		case 'h': t *= 60*60; break;
+		case 'd': t *= 60*60*24; break;
+		case 'w': t *= 60*60*24*7; break;
+		case 'M': t *= 60*60*24*30; break;
+		case 'y': t *= 60*60*24*365; break;
+		default: return 0;
+		}
+
+		*duration += t;
+	}
+	return e-s;
+}
+
+size_t fmt_duration(char *out, uint64 duration)
+{
+	char *s=out;
+	uint64 t = duration;
+	uint64 r;
+	r = t / (60*60*24*365); t %= (60*60*24*365);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'y';
+	}
+	r = t / (60*60*24*30); t %= (60*60*24*30);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'M';
+	}
+	r = t / (60*60*24*7); t %= (60*60*24*7);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'w';
+	}
+	r = t / (60*60*24); t %= (60*60*24);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'd';
+	}
+	r = t / (60*60); t %= (60*60);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'h';
+	}
+	r = t / (60); t %= (60);
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 'm';
+	}
+	if (r>0) {
+		s += fmt_ulong(s, r);
+		*s++ = 's';
+	}
+	return s-out;
+}

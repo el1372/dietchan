@@ -25,6 +25,9 @@ size_t fmt_time(char *out, uint64 ms);
 size_t fmt_escape(char *buf, const char *unescaped);
 size_t fmt_escapen(char *buf, const char *unescaped, size_t n);
 
+size_t scan_duration(const char *s, uint64 *duration);
+size_t fmt_duration(char *out, uint64 duration);
+
 #define FMT_ESC_HTML_CHAR 6
 
 static inline size_t html_escape_char(char *output, char character)

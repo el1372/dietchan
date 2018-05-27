@@ -49,28 +49,28 @@ int db_init(const char *file)
 		board_set_id(board, 1);
 		master_set_board_counter(master, 1);
 
-		struct thread *thread = thread_new();
-		thread_set_board(thread, board);
+		//struct thread *thread = thread_new();
+		//thread_set_board(thread, board);
 
-		struct post *post = post_new();
-		post_set_thread(post, thread);
-		post_set_id(post, 1);
-		db_hashmap_insert(&post_tbl, &post_id(post), post);
-		post_set_subject(post, "");
-		post_set_username(post, "Felix");
-		post_set_password(post, crypt_password("secret"));
-		post_set_text(post, "Hab eine Bilderbrett-Software in C gehackt. Natürlich mit "
-		                    "dietlibc, libowfat und selbstgefrickelter Persistierungsschicht.");
+		//struct post *post = post_new();
+		//post_set_thread(post, thread);
+		//post_set_id(post, 1);
+		//db_hashmap_insert(&post_tbl, &post_id(post), post);
+		//post_set_subject(post, "");
+		//post_set_username(post, "Felix");
+		//post_set_password(post, crypt_password("secret"));
+		//post_set_text(post, "Hab eine Bilderbrett-Software in C gehackt. Natürlich mit "
+		//                    "dietlibc, libowfat und selbstgefrickelter Persistierungsschicht.");
 
-		thread_set_first_post(thread, post);
-		thread_set_last_post(thread, post);
+		//thread_set_first_post(thread, post);
+		//thread_set_last_post(thread, post);
 
-		board_set_first_thread(board, thread);
-		board_set_last_thread(board, thread);
+		//board_set_first_thread(board, thread);
+		//board_set_last_thread(board, thread);
 
 		master_set_first_board(master, board);
 		master_set_last_board(master, board);
-		master_set_post_counter(master, post_id(post));
+		//master_set_post_counter(master, post_id(post));
 
 		struct user *admin = user_new();
 		user_set_id(admin, 1);

@@ -198,8 +198,8 @@ static int  mod_page_finish (http_context *http)
 
 	if (!page->duration) {
 		if (ban) {
-			page->duration = malloc(FMT_ULONG+1);
-			page->duration[fmt_long(page->duration, ban_duration(ban))] = '\0';
+			page->duration = malloc(256);
+			page->duration[fmt_duration(page->duration, ban_duration(ban))] = '\0';
 		} else {
 			page->duration = strdup("");
 		}
@@ -382,7 +382,7 @@ static int  mod_page_finish (http_context *http)
 		// TODO: Allow more complex format like (1d 12h)
 
 		if (str_equal(page->duration, "") ||
-			page->duration[scan_long(page->duration, &duration)] != '\0') {
+			page->duration[scan_duration(page->duration, &duration)] != '\0') {
 			PRINT(S("<p class='error'>Ungültige Bann-Dauer</p>"));
 			do_it = 0;
 		}
@@ -724,6 +724,7 @@ static int  mod_page_finish (http_context *http)
 	// Delete ban
 	if (do_delete_ban && do_it) {
 		delete_ban(ban);
+		PRINT(S("<p>Bann gelöscht.</p>"));
 	}
 
 	if (do_it)
