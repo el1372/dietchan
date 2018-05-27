@@ -63,7 +63,7 @@ static void is_banned_callback(struct ban *ban, struct ip *ip, void *extra)
 	struct is_banned_info *info = (struct is_banned_info*)extra;
 	if (ban_type(ban) == info->type &&
 	    ban_target(ban) == info->target &&
-	    ((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
+	    ((ban_duration(ban) <= 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
 	    (!info->board || ban_matches_board(ban, board_id(info->board)))) {
 		if (ban_duration(ban) > 0) {
 			int64 expires = ban_timestamp(ban) + ban_duration(ban);
