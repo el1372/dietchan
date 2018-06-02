@@ -8,15 +8,15 @@
 #include <libowfat/uint64.h>
 #include "context.h"
 
-#define S(s) ((struct tpl_part){T_STR, (uint64)s, strlen(s)})
-#define E(s) ((struct tpl_part){T_ESC_HTML, (uint64)s, strlen(s)})
+#define S(s) ((struct tpl_part){T_STR, (uint64)(intptr_t)s, strlen(s)})
+#define E(s) ((struct tpl_part){T_ESC_HTML, (uint64)(intptr_t)s, strlen(s)})
 #define I64(i) ((struct tpl_part){T_I64, (uint64)i})
 #define U64(u) ((struct tpl_part){T_U64, (uint64)u})
 #define X64(ul) ((struct tpl_part){T_X64, (uint64)ul})
 #define H(ull) ((struct tpl_part){T_HUMAN, (uint64)ull})
 #define HK(ull) ((struct tpl_part){T_HUMANK, (uint64)ull})
 #define HTTP_DATE(t) ((struct tpl_part){T_HTTP_DATE, (uint64)t})
-#define IP(ip) ((struct tpl_part){T_IP, (uint64)(&ip)})
+#define IP(ip) ((struct tpl_part){T_IP, (uint64)(intptr_t)(&ip)})
 #define TIME_MS(ms) ((struct tpl_part){T_TIME_MS, (uint64)ms})
 #define TEND    ((struct tpl_part){0})
 

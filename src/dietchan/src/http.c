@@ -129,7 +129,7 @@ static ssize_t http_read_line(http_context *http, char *buf, size_t length, size
 static int http_process_header(http_context *http, char *key, char *val)
 {
 	if (case_equals(key, "Content-Length")) {
-		if (scan_long(val, &http->content_length) != strlen(val))
+		if (scan_int64(val, &http->content_length) != strlen(val))
 			HTTP_FAIL(BAD_REQUEST);
 	} else if (case_equals(key, "Content-Type")) {
 		if (http_parse_content_type(http, val) == ERROR)
