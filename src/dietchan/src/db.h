@@ -27,11 +27,6 @@ typedef struct db_header {
 	db_ptr buckets[BUCKET_COUNT];
 } db_header;
 
-typedef struct db_region {
-	db_ptr start;
-	uint64 size;
-} db_region;
-
 
 typedef struct db_obj {
 	int   fd;

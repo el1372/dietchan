@@ -21,10 +21,10 @@ void commit();
 
 #define get_ptr(type, obj, prop)        ((type)db_unmarshal(db, (obj)->prop))
 #define set_ptr(type, obj, prop, val)   do {(obj)->prop = db_marshal(db, val); \
-                                            db_invalidate_region(db, (obj), sizeof (*(obj))); } while (0)
+                                            db_invalidate_region(db, &((obj)->prop), sizeof(obj->prop)); } while (0)
 #define get_val(obj, prop)              ((obj)->prop)
 #define set_val(obj, prop, val)         do {(obj)->prop = val; \
-                                            db_invalidate_region(db, (obj), sizeof (*(obj))); } while (0)
+                                            db_invalidate_region(db, &((obj)->prop), sizeof(obj->prop)); } while (0)
 
 #define get_str(obj, prop)              get_ptr(char*, obj, prop)
 #define set_str(obj, prop, val)         do { \
@@ -32,12 +32,12 @@ void commit();
                                             if (db_marshal(db, v) == ((obj)->prop)) break; \
                                             if ((obj)->prop) db_free(db, db_unmarshal(db, (obj)->prop)); \
                                             (obj)->prop = db_marshal(db, db_strdup(v)); \
-                                            db_invalidate_region(db, (obj), sizeof (*(obj))); \
+                                            db_invalidate_region(db, &((obj)->prop), sizeof(obj->prop)); \
                                         } while (0)
 
 #define get_flag(obj, flags, flag)      ((obj)->flags & (flag))
 #define set_flag(obj, flags, flag, val) do { (obj)->flags = (val)?((obj)->flags | (flag)):((obj)->flags & (~(flag))); \
-                                             db_invalidate_region(db, (obj), sizeof(*(obj))); } while (0)
+                                             db_invalidate_region(db, &((obj)->flags), sizeof(obj->flags)); } while (0)
 
 #define db_new(type)                   ((type*)(db_alloc0(sizeof(type))))
 
