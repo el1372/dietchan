@@ -67,7 +67,7 @@ static int  mod_page_post_param (http_context *http, char *key, char *val)
 	// General parameters for deleting/banning/closing/pinning
 	if (case_equals(key, "post")) {
 		uint64 tmp;
-		if (val[scan_ulong(val, &tmp)] != '\0')
+		if (val[scan_uint64(val, &tmp)] != '\0')
 			HTTP_FAIL(BAD_REQUEST);
 		int64 count=array_length(&page->posts, sizeof(uint64));
 		uint64 *id=array_allocate(&page->posts, sizeof(uint64), count);
@@ -96,7 +96,7 @@ static int  mod_page_post_param (http_context *http, char *key, char *val)
 	PARAM_STR("comment", page->comment);
 	if (case_equals(key, "report")) {
 		uint64 tmp;
-		if (val[scan_ulong(val, &tmp)] != '\0')
+		if (val[scan_uint64(val, &tmp)] != '\0')
 			HTTP_FAIL(BAD_REQUEST);
 		int64 count=array_length(&page->reports, sizeof(uint64));
 		uint64 *id=array_allocate(&page->reports, sizeof(uint64), count);
@@ -584,14 +584,14 @@ static int  mod_page_finish (http_context *http)
 			struct post *post = find_post_by_id(*id);
 
 			if (!post) {
-				PRINT(S("<p>Post "), UL(*id), S(" nicht gefunden.</p>"));
+				PRINT(S("<p>Post "), U64(*id), S(" nicht gefunden.</p>"));
 				continue;
 			}
 
 			if (do_close || do_pin) {
 				struct board *board = thread_board(post_thread(post));
 				if (!is_mod_for_board(page->user, board)) {
-					PRINT(S("<p>Post "), UL(*id), S(" gehört zum Brett /"), E(board_name(board)), S("/,"
+					PRINT(S("<p>Post "), U64(*id), S(" gehört zum Brett /"), E(board_name(board)), S("/,"
 					        " für welches du keine Moderationsrechte besitzt. IGNORIERT.</p>"));
 					continue;
 				}
@@ -630,18 +630,18 @@ static int  mod_page_finish (http_context *http)
 
 				if (do_report) {
 					if (post_reported(post)) {
-						PRINT(S("<p>Post "), UL(*id), S(" wurde bereits gemeldet."));
+						PRINT(S("<p>Post "), U64(*id), S(" wurde bereits gemeldet."));
 						continue;
 					}
 				}
 
 				any_valid_post = 1;
-				PRINT(S("<input type='hidden' name='post' value='"), UL(*id), S("'>"));
+				PRINT(S("<input type='hidden' name='post' value='"), U64(*id), S("'>"));
 			} else {
 				struct thread *thread = post_thread(post);
 				if (do_pin) {
 					if (thread_first_post(thread) != post) {
-						PRINT(S("<p>Post "), UL(*id), S(" ist kein Thread und kann daher nicht angepinnt werden."));
+						PRINT(S("<p>Post "), U64(*id), S(" ist kein Thread und kann daher nicht angepinnt werden."));
 						continue;
 					}
 
@@ -653,7 +653,7 @@ static int  mod_page_finish (http_context *http)
 				}
 				if (do_close) {
 					if (thread_first_post(thread) != post) {
-						PRINT(S("<p>Post "), UL(*id), S(" ist kein Thread und kann daher nicht geschlossen werden."));
+						PRINT(S("<p>Post "), U64(*id), S(" ist kein Thread und kann daher nicht geschlossen werden."));
 						continue;
 					}
 
@@ -691,11 +691,11 @@ static int  mod_page_finish (http_context *http)
 				}
 				if (do_delete) {
 					if (!can_delete_post(page, post)) {
-						PRINT(S("<p>Post "), UL(*id), S(" NICHT gelöscht. Falsches Passwort.</p>"));
+						PRINT(S("<p>Post "), U64(*id), S(" NICHT gelöscht. Falsches Passwort.</p>"));
 						continue;
 					}
 
-					PRINT(S("<p>Post "), UL(*id), S(" gelöscht.</p>"));
+					PRINT(S("<p>Post "), U64(*id), S(" gelöscht.</p>"));
 
 					if (thread_first_post(thread) == post)
 						delete_thread(thread);
@@ -744,7 +744,7 @@ static int  mod_page_finish (http_context *http)
 				PRINT(S("<h1>Bannen</h1>"));
 
 			if (array_bytes(&page->posts) != 0)
-				PRINT(S("<p>"), UL(post_count), S(" Post(s)</p>"));
+				PRINT(S("<p>"), U64(post_count), S(" Post(s)</p>"));
 
 			PRINT(S("<p><table>"));
 
@@ -786,7 +786,7 @@ static int  mod_page_finish (http_context *http)
 				int count = array_length(&ranges, sizeof(struct ip_range));
 				for (int i=0; i<count; ++i) {
 					struct ip_range *range = array_get(&ranges, sizeof(struct ip_range), i);
-					PRINT(IP(range->ip),S("/"),UL(range->range),S("\n"));
+					PRINT(IP(range->ip),S("/"),U64(range->range),S("\n"));
 				}
 			} else if (page->ip_ranges) {
 				// Otherwise echo user submitted ips
@@ -857,7 +857,7 @@ static int  mod_page_finish (http_context *http)
 		// Remember reports
 		for (size_t i=0; i<array_length(&page->reports, sizeof(uint64)); ++i) {
 			uint64 *id = array_get(&page->reports, sizeof(uint64), i);
-			PRINT(S("<input type='hidden' name='report' value='"), UL(*id), S("'>"));
+			PRINT(S("<input type='hidden' name='report' value='"), U64(*id), S("'>"));
 		}
 
 		// Remember redirect

@@ -4,6 +4,7 @@
 #include <libowfat/fmt.h>
 #include <libowfat/byte.h>
 
+#include "../util.h"
 #include "../tpl.h"
 #include "../persistence.h"
 #include "../captcha.h"
@@ -98,11 +99,11 @@ static void print_board_nav(http_context *http, struct board *board, int64 curre
 			if (i != current_page) {
 				PRINT(S("<a class='page' href='"), S(PREFIX), S("/"), E(board_name(board)), S("/"));
 				if (i>0)
-					PRINT(S("?p="),L(i));
-				PRINT(S("'>["), L(i), S("]</a>"
+					PRINT(S("?p="),I64(i));
+				PRINT(S("'>["), I64(i), S("]</a>"
 				        "<span class='space'> </span>"));
 			} else {
-				PRINT(S("<span class='page current'>["), L(i), S("]</span>"
+				PRINT(S("<span class='page current'>["), I64(i), S("]</span>"
 				        "<span class='space'> </span>"));
 			}
 		}
@@ -174,7 +175,7 @@ static int  board_page_finish (http_context *http)
 
 			if (thread_post_count(thread) > PREVIEW_REPLIES + 1) {
 				uint64 n = thread_post_count(thread) - PREVIEW_REPLIES-1;
-				PRINT(S("<div class='thread-stats'>"), UL(n), S(" "),
+				PRINT(S("<div class='thread-stats'>"), U64(n), S(" "),
 				       (n > 1)?S("Antworten"):S("Antwort"), S(" nicht angezeigt.</div>"));
 			}
 

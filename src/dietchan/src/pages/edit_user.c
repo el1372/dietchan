@@ -101,7 +101,7 @@ static void edit_user_page_print_form(http_context *http)
 	      S("<form method='post'>"
 	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
 	          "<input type='hidden' name='submitted' value='1'>"
-	          "<input type='hidden' name='user_id' value='"), L(page->user_id), S("'>"
+	          "<input type='hidden' name='user_id' value='"), I64(page->user_id), S("'>"
 	           "<p><table>"
 	             "<tr>"
 	               "<th><label for='user_name'>Name: </label></th>"
@@ -154,7 +154,7 @@ static void edit_user_page_print_confirmation(http_context *http)
 	struct edit_user_page *page = (struct edit_user_page*)http->info;
 	struct user *user = find_user_by_id(page->user_id);
 	PRINT(S("<form method='post'>"
-	          "<input type='hidden' name='user_id' value='"), L(page->user_id), S("'>"
+	          "<input type='hidden' name='user_id' value='"), I64(page->user_id), S("'>"
 	          "<p><label>"
 	            "<input type='checkbox' name='confirmed' value='1'>"
 	            "Benutzer '"), E(user_name(user)),S("' wirklich löschen."

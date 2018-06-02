@@ -153,7 +153,7 @@ static void start_mime_check_job(struct upload_job *upload_job)
 	assert(upload_job->state == UPLOAD_JOB_UPLOADED);
 
 	char command[512];
-	strcpy(command, "/bin/file --mime-type --brief -k -r ");
+	strcpy(command, "file --mime-type --brief -k -r ");
 	strcat(command, upload_job->file_path);
 
 	job_context *job = job_new(command);
@@ -318,14 +318,14 @@ static void finished_thumbnail_job(struct upload_job *upload_job)
 static void extract_meta_command(const char *file, const char *mime_type, char *command)
 {
 	if (case_starts(mime_type, "video/")) {
-		strcpy(command, "/bin/ffprobe -v error -show_entries format=duration:stream=index,codec_types,width,height -of default=noprint_wrappers=1 ");
+		strcpy(command, "ffprobe -v error -show_entries format=duration:stream=index,codec_types,width,height -of default=noprint_wrappers=1 ");
 		strcat(command, file);
 	} else {
 		int multipage=0;
 		if (case_equals(mime_type, "image/gif") ||
 		    case_equals(mime_type, "application/pdf"))
 			multipage=1;
-		strcpy(command, "/bin/magick identify -format 'width=%[fx:w]\\nheight=%[fx:h]\\n' ");
+		strcpy(command, "identify -format 'width=%[fx:w]\\nheight=%[fx:h]\\n' ");
 		strcat(command, file);
 		if (multipage)
 			strcat(command, "[0]");
@@ -344,7 +344,7 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 
 	if (case_starts(mime_type, "video/")) {
 		// Hardcoded at 1 sec right now
-		strcpy(command, "/bin/ffmpeg -ss 00:00:01.800 -i ");
+		strcpy(command, "ffmpeg -ss 00:00:01.800 -i ");
 		strcat(command, file);
 		strcat(command, " -vframes 1 -map 0:v -vf 'thumbnail=5,scale=iw*sar:ih' -f image2pipe -vcodec bmp - ");
 
@@ -362,7 +362,7 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 		    case_equals(mime_type, "application/pdf"))
 			multipage=1;
 
-		strcpy(command, "/bin/magick convert ");
+		strcpy(command, "convert ");
 		strcat(command, file);
 		if (multipage)
 			strcat(command, "[0]");
@@ -370,13 +370,14 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 		if (case_equals(mime_type, "application/pdf"))
 			strcat(command, " -flatten");
 
-		strcat(command, " -resize 400x400 -quality 0 -profile /usr/share/color/icc/colord/sRGB.icc -strip ");
+		//strcat(command, " -resize 400x400 -quality 0 -profile /usr/share/color/icc/colord/sRGB.icc -strip ");
+		strcat(command, " -resize 400x400 -quality 0 -profile data/sRGB.icc -strip ");
 		strcat(command, thumb_file);
 
 		strcat(command, " && (");
 
 		// Imagemagick's PNG8 capabilities suck, so use pngquant to further optimize the size (optional)
-		strcat(command, "/bin/pngquant -f 32 ");
+		strcat(command, "pngquant -f 32 ");
 		strcat(command, thumb_file);
 		strcat(command, " -o ");
 		strcat(command, thumb_file);
@@ -386,11 +387,12 @@ static void thumbnail_command(const char *file, const char *mime_type, const cha
 		*ext = ".jpg";
 		strcat(thumb_file, *ext);
 
-		strcpy(command, "/bin/magick convert ");
+		strcpy(command, "convert ");
 		strcat(command, " -define jpeg:size=800x800 -define jpeg:extent=20kb ");
 		strcat(command, file);
 		strcat(command, "'[400x400]' -auto-orient -sharpen 0.1 -quality 50 -sampling-factor 2x2,1x1,1x1 "
-		                "-profile /usr/share/color/icc/colord/sRGB.icc -strip ");
+		//                "-profile /usr/share/color/icc/colord/sRGB.icc -strip ");
+		                "-profile data/sRGB.icc -strip ");
 		strcat(command, thumb_file);
 	}
 }

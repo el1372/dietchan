@@ -95,7 +95,7 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 		PRINT(S("<tr>"
 		          "<th></th>"
 		          "<td colspan='2'><center>"
-		            "<img class='captcha' src='"), S(PREFIX), S("/captchas/"), X(captcha_id(captcha)), S(".png'></center>"
+		            "<img class='captcha' src='"), S(PREFIX), S("/captchas/"), X64(captcha_id(captcha)), S(".png'></center>"
 		          "</td>"
 		        "</tr>"
 		        "<tr>"
@@ -116,13 +116,13 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 	}
 	PRINT(S("</table>"));
 	if (captcha) {
-		PRINT(S("<input name='captcha_id' value='"), X(captcha_id(captcha)), S("' type='hidden'>"
-		        "<input name='captcha_token' value='"), X(captcha_token(captcha)), S("' type='hidden'>"));
+		PRINT(S("<input name='captcha_id' value='"), X64(captcha_id(captcha)), S("' type='hidden'>"
+		        "<input name='captcha_token' value='"), X64(captcha_token(captcha)), S("' type='hidden'>"));
 	}
 	if (thread)
-		PRINT(S("<input name='thread' value='"), UL(post_id(thread_first_post(thread))), S("' type='hidden'>"));
+		PRINT(S("<input name='thread' value='"), U64(post_id(thread_first_post(thread))), S("' type='hidden'>"));
 	else
-		PRINT(S("<input name='board' value='"), UL(board_id(board)), S("' type='hidden'>"));
+		PRINT(S("<input name='board' value='"), U64(board_id(board)), S("' type='hidden'>"));
 
 	PRINT(S("</form>"));
 }
@@ -422,12 +422,12 @@ void print_post_url2(http_context *http, struct board *board, struct thread *thr
 	if (absolute) {
 		struct post *first_post = thread_first_post(thread);
 
-		PRINT(S(PREFIX), S("/"), E(board_name(board)), S("/"), UL(post_id(first_post)));
+		PRINT(S(PREFIX), S("/"), E(board_name(board)), S("/"), U64(post_id(first_post)));
 
 		if (first_post == post)
 			return;
 	}
-	PRINT(S("#"), UL(post_id(post)));
+	PRINT(S("#"), U64(post_id(post)));
 }
 
 void print_post_url(http_context *http, struct post *post, int absolute)
@@ -510,7 +510,7 @@ void print_upload(http_context *http, struct upload *upload)
 
 	if (case_starts(mime, "image/") || case_starts(mime, "video/"))
 		PRINT(S(" <span class='file-dimensions'>"),
-		            I(upload_width(upload)), S("×"), I(upload_height(upload)),
+		            I64(upload_width(upload)), S("×"), I64(upload_height(upload)),
 		      S("</span>"));
 
 	if (case_starts(mime, "video/"))
@@ -534,12 +534,12 @@ void print_post(http_context *http, struct post *post, int absolute_url, int fla
 
 	PRINT(S("<div class='post-wrapper'>"
 	          "<div class='post "), is_first?S("first"):S("reply"), S("'"
-	              " id='"), UL(post_id(post)), S("'>"
+	              " id='"), U64(post_id(post)), S("'>"
 	            "<ul>"
 	              "<li>"
 	                "<div class='post-header'>"
 	                  "<span class='delete'>"
-	                    "<input type='checkbox' name='post' value='"), UL(post_id(post)), S("'>"
+	                    "<input type='checkbox' name='post' value='"), U64(post_id(post)), S("'>"
 	                  "</span><span class='space'> </span>"
 	                  "<span class='link'>"
 	                    "<a href='"));
@@ -578,7 +578,7 @@ void print_post(http_context *http, struct post *post, int absolute_url, int fla
 	PRINT(S(          "<span class='space'> </span>"
 	                  "<span class='time'>"), HTTP_DATE(post_timestamp(post)), S("</span>"
 	                  "<span class='space'> </span>"
-	                  "<span class='number'>Nr. "), UL(post_id(post)), S("</span>"
+	                  "<span class='number'>Nr. "), U64(post_id(post)), S("</span>"
 	                  "<span class='space'> </span>"),
 	                  (post_sage(post))?
 	                    S("<span class='sage'>SÄGE</span>"):S(""),

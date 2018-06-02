@@ -24,6 +24,7 @@
 #include <libowfat/ip4.h>
 #include <libowfat/ip6.h>
 
+#include "../util.h"
 #include "../arc4random.h"
 #include "../db.h"
 #include "../upload_job.h"
@@ -191,7 +192,7 @@ static int post_page_file_content (http_context *http, char *buf, size_t length)
 		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>Error</h1>"
-		        "<p>You may only attach up to "), L(MAX_FILES_PER_POST), S(" files.</p>"));
+		        "<p>You may only attach up to "), I64(MAX_FILES_PER_POST), S(" files.</p>"));
 		PRINT_EOF();
 
 		upload_job_abort(page->current_upload_job);
@@ -430,7 +431,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Beitrag ist zu lang! (maximal "), L(POST_MAX_BODY_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>Beitrag ist zu lang! (maximal "), I64(POST_MAX_BODY_LENGTH), S(" Zeichen)</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -439,7 +440,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Betreff ist zu lang! (maximal "), L(POST_MAX_SUBJECT_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>Betreff ist zu lang! (maximal "), I64(POST_MAX_SUBJECT_LENGTH), S(" Zeichen)</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -448,7 +449,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Name ist zu lang! (maximal "), L(POST_MAX_NAME_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>Name ist zu lang! (maximal "), I64(POST_MAX_NAME_LENGTH), S(" Zeichen)</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -462,7 +463,7 @@ static int post_page_finish (http_context *http)
 		uint64 now = time(0);
 		PRINT_STATUS_HTML("403 Verboten");
 		PRINT_BODY();
-		PRINT(S("<p>Flood protection: Du kannst den nächsten Beitrag erst in "), UL(flood - now), S(" Sekunden erstellen.</p>"));
+		PRINT(S("<p>Flood protection: Du kannst den nächsten Beitrag erst in "), U64(flood - now), S(" Sekunden erstellen.</p>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -613,12 +614,12 @@ static int post_page_finish (http_context *http)
 
 		char filename[32];
 		byte_zero(filename, sizeof(filename));
-		fmt_ulong(filename, upload_id);
+		fmt_uint64(filename, upload_id);
 		strcat(filename, upload_job->file_ext);
 
 		char thumb_filename[32];
 		byte_zero(thumb_filename, sizeof(filename));
-		fmt_ulong(thumb_filename, upload_id);
+		fmt_uint64(thumb_filename, upload_id);
 		strcat(thumb_filename, "s");
 		strcat(thumb_filename, upload_job->thumb_ext);
 

@@ -45,20 +45,14 @@ static void _print_internal(context *ctx, const struct tpl_part *part)
 	}
 	char buf[256];
 	switch (part->type) {
-		case T_INT:
-			context_write_data(ctx, buf, fmt_int(buf, ((int)part->param0)));
+		case T_I64:
+			context_write_data(ctx, buf, fmt_int64(buf, ((int64)part->param0)));
 			break;
-		case T_UINT:
-			context_write_data(ctx, buf, fmt_uint(buf, ((unsigned int)part->param0)));
+		case T_U64:
+			context_write_data(ctx, buf, fmt_uint64(buf, ((uint64)part->param0)));
 			break;
-		case T_LONG:
-			context_write_data(ctx, buf, fmt_long(buf, ((long)part->param0)));
-			break;
-		case T_ULONG:
-			context_write_data(ctx, buf, fmt_ulong(buf, ((unsigned long)part->param0)));
-			break;
-		case T_XLONG:
-			context_write_data(ctx, buf, fmt_xlong(buf, ((unsigned long)part->param0)));
+		case T_X64:
+			context_write_data(ctx, buf, fmt_xint64(buf, ((uint64)part->param0)));
 			break;
 		case T_HTTP_DATE:
 			context_write_data(ctx, buf, fmt_httpdate(buf, ((time_t)part->param0)));

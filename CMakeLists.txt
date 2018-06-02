@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 include(ExternalProject)
 
-#set(CMAKE_LIBRARY_PATH "${PROJECT_SOURCE_DIR}/src/libowfat"
-
 set(BUILD_ROOT "${PROJECT_SOURCE_DIR}/build")
 
 ExternalProject_Add(
@@ -60,7 +58,8 @@ ExternalProject_Add(
 	BUILD_IN_SOURCE 1
 	BUILD_ALWAYS 1
 	UPDATE_COMMAND ""
-	INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/src/dietchan/dietchan ${PROJECT_SOURCE_DIR}
+	INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/src/dietchan/dietchan ${PROJECT_SOURCE_DIR} &&
+		${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/dietchan/data ${PROJECT_SOURCE_DIR}/data
 	CMAKE_ARGS -DCMAKE_C_COMPILER=${BUILD_ROOT}/diet-gcc
 	           -DCMAKE_LIBRARY_PATH=${PROJECT_SOURCE_DIR}/src/libowfat
 	           -DCMAKE_INCLUDE_PATH=${PROJECT_SOURCE_DIR}/src
@@ -69,7 +68,7 @@ ExternalProject_Add(
 
 add_dependencies(libowfat dietlibc)
 add_dependencies(captcha dietlibc)
-add_dependencies(dietchan dietlibc)
+add_dependencies(dietchan libowfat dietlibc)
 
 
 # Only for IDE support

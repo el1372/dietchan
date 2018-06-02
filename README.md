@@ -37,7 +37,6 @@ Das Datenbankformat könnte sich in Zukunft noch ändern, daher ist die Software
 - file
 - Imagemagick
 - ffmpeg
-- colord
 
 ### Empfohlen:
 

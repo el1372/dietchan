@@ -140,7 +140,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               break;
 			           }
 			           uint64 post_id=0;
-			           if (ss[1] == '>' && (i=scan_ulong(&ss[2], &post_id))) {
+			           if (ss[1] == '>' && (i=scan_uint64(&ss[2], &post_id))) {
 			               // Reference to a post
 			               struct post *post=find_post_by_id(post_id);
 			               if (post) {

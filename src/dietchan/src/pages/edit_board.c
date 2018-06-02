@@ -73,7 +73,7 @@ static void edit_board_page_print_form(http_context *http)
 	        "<form method='post'>"
 	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
 	           "<input type='hidden' name='submitted' value='1'>"
-	           "<input type='hidden' name='board_id' value='"), L(page->board_id), S("'>"
+	           "<input type='hidden' name='board_id' value='"), I64(page->board_id), S("'>"
 	           "<p><table>"
 	           "<tr>"
 	             "<th><label for='board_name'>Name (URL): </label></th>"
@@ -92,7 +92,7 @@ static void edit_board_page_print_confirmation(http_context *http)
 	struct edit_board_page *page = (struct edit_board_page*)http->info;
 	struct board *board = find_board_by_id(page->board_id);
 	PRINT(S("<form method='post'>"
-	        "<input type='hidden' name='board_id' value='"), L(page->board_id), S("'>"
+	        "<input type='hidden' name='board_id' value='"), I64(page->board_id), S("'>"
 	        "<p><label>"
 	             "<input type='checkbox' name='confirmed' value='1'>"
 	             "Brett /"), E(board_name(board)), S("/ wirklich löschen."

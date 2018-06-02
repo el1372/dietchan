@@ -154,7 +154,7 @@ void write_dashboard_header(http_context *http, uint64 user_id)
 	          "</head>"
 	          "<body>"
 	            "<div style='float:right'>"
-	              "<a href='"), S(PREFIX), S("/edit_user?action=edit&user_id="), UL(user_id), S("'>"
+	              "<a href='"), S(PREFIX), S("/edit_user?action=edit&user_id="), U64(user_id), S("'>"
 	                "Konto bearbeiten"
 	              "</a> "
 	            "<a href='"),S(PREFIX), S("/login?logout&redirect="), S(PREFIX), S("/login'>"
@@ -197,13 +197,13 @@ static int  dashboard_page_finish (http_context *http)
 			            "<a href='"), S(PREFIX), S("/"), E(board_name(board)), S("/'>/"), E(board_name(board)), S("/</a>"
 			          "</td>"
 			          "<td>"), E(board_title(board)), S("</td>"
-			          "<td><a class='button' href='"), S(PREFIX), S("/edit_board?action=move&amp;move=-1&amp;board_id="), UL(board_id(board)), S("'>▲</a>"
+			          "<td><a class='button' href='"), S(PREFIX), S("/edit_board?action=move&amp;move=-1&amp;board_id="), U64(board_id(board)), S("'>▲</a>"
 			              "<span class='space'> </span>"
-			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=move&amp;move=1&amp;board_id="), UL(board_id(board)), S("'>▼</a>"
+			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=move&amp;move=1&amp;board_id="), U64(board_id(board)), S("'>▼</a>"
 			              "<span class='space'> </span>"
-			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=edit&amp;board_id="), UL(board_id(board)), S("'>Bearbeiten</a>"
+			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=edit&amp;board_id="), U64(board_id(board)), S("'>Bearbeiten</a>"
 			              "<span class='space'> </span>"
-			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=delete&amp;board_id="), UL(board_id(board)), S("'>Löschen</a>"
+			              "<a class='button' href='"), S(PREFIX), S("/edit_board?action=delete&amp;board_id="), U64(board_id(board)), S("'>Löschen</a>"
 			          "</td>"
 			        "</tr>"));
 		}
@@ -247,9 +247,9 @@ static int  dashboard_page_finish (http_context *http)
 			}
 			PRINT(S(  "</td>"
 			          "<td>"
-			            "<a class='button' href='"), S(PREFIX), S("/edit_user?action=edit&amp;user_id="), UL(user_id(user)), S("'>Bearbeiten</a>"
+			            "<a class='button' href='"), S(PREFIX), S("/edit_user?action=edit&amp;user_id="), U64(user_id(user)), S("'>Bearbeiten</a>"
 			            "<span class='space'> </span>"
-			            "<a class='button' href='"), S(PREFIX), S("/edit_user?action=delete&amp;user_id="), UL(user_id(user)), S("'>Löschen</a>"
+			            "<a class='button' href='"), S(PREFIX), S("/edit_user?action=delete&amp;user_id="), U64(user_id(user)), S("'>Löschen</a>"
 			          "</td>"
 			        "</tr>"));
 		}
@@ -277,12 +277,12 @@ static int  dashboard_page_finish (http_context *http)
 			struct thread *thread = find_thread_by_id(report_thread_id(report));
 			struct post *post = find_post_by_id(report_post_id(report));
 			PRINT(S("<tr>"
-			          "<td><input type='checkbox' name='report' value='"), UL(report_id(report)), S("'></td>"
+			          "<td><input type='checkbox' name='report' value='"), U64(report_id(report)), S("'></td>"
 			          "<td>"), HTTP_DATE(report_timestamp(report)), S("</td>"
 			          "<td>/"), board?E(board_name(board)):S(""), S("/</td>"
 			          "<td><a href='"));
 			print_post_url2(http, board, thread, post, 1);
-			PRINT(S(       "'>&gt;&gt;"), UL(report_post_id(report)), S("</a></td><td>"));
+			PRINT(S(       "'>&gt;&gt;"), U64(report_post_id(report)), S("</a></td><td>"));
 			if (post)
 				print_post(http, post, 1, WRITE_POST_IP | WRITE_POST_USER_AGENT);
 			else
@@ -337,7 +337,7 @@ static int  dashboard_page_finish (http_context *http)
 
 			PRINT(S("<tr>"
 			          "<td>"),
-			            IP(ban_range(ban).ip), S("/"), UL(ban_range(ban).range), S(
+			            IP(ban_range(ban).ip), S("/"), U64(ban_range(ban).range), S(
 			          "</td>"
 			          "<td>"));
 			switch (ban_type(ban)) {
@@ -373,9 +373,9 @@ static int  dashboard_page_finish (http_context *http)
 			            ban_reason(ban)?E(ban_reason(ban)):S(""), S(
 			          "</td>"
 			          "<td>"
-			            "<a class='button' href='"), S(PREFIX), S("/mod?action=edit_ban&amp;redirect="), S(PREFIX), S("/dashboard&amp;ban_id="), UL(ban_id(ban)), S("'>Bearbeiten</a>"
+			            "<a class='button' href='"), S(PREFIX), S("/mod?action=edit_ban&amp;redirect="), S(PREFIX), S("/dashboard&amp;ban_id="), U64(ban_id(ban)), S("'>Bearbeiten</a>"
 			            "<span class='space'> </span>"
-			            "<a class='button' href='"), S(PREFIX), S("/mod?action=delete_ban&amp;redirect="), S(PREFIX), S("/dashboard&amp;ban_id="), UL(ban_id(ban)), S("'>Löschen</a>"
+			            "<a class='button' href='"), S(PREFIX), S("/mod?action=delete_ban&amp;redirect="), S(PREFIX), S("/dashboard&amp;ban_id="), U64(ban_id(ban)), S("'>Löschen</a>"
 			          "</td>"
 			        "</tr>"));
 		}

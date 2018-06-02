@@ -65,7 +65,7 @@ static void banned_page_ban_callback(struct ban *ban, struct ip *ip, void *extra
 		if (!page->any_ban)
 			banned_page_print_header(http, "Gebannt");
 		PRINT(S("<div class='ban'>"
-		        "<p>Deine IP ("), IP(*ip), S(") gehört zum Subnetz "), IP(range.ip), S("/"), I(range.range), S(
+		        "<p>Deine IP ("), IP(*ip), S(") gehört zum Subnetz "), IP(range.ip), S("/"), I64(range.range), S(
 		        ", welches aus folgendem Grund gebannt wurde:</p>"
 		        "<p>"), ban_reason(ban)?E(ban_reason(ban)):S("<i>Kein Grund angegeben</i>"), S("</p>"
 		        "<p>Bretter: "));

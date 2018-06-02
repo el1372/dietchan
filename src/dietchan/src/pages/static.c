@@ -109,7 +109,7 @@ static int static_page_finish (http_context *http)
 	PRINT(S("Last-Modified: "),HTTP_DATE(st.st_mtime), S("\r\n"
 	        "Cache-Control: private, max-age=31536000\r\n" // 1 year
 	        "Content-Type: "), S(mime), S("\r\n"
-	        "Content-Length: "), UL(st.st_size), S("\r\n"));
+	        "Content-Length: "), U64(st.st_size), S("\r\n"));
 	PRINT_BODY();
 	context_write_file((context*)http, fd, 0, st.st_size);
 

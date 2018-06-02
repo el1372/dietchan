@@ -134,7 +134,7 @@ found:
 
 static void error (http_context *http)
 {
-	PRINT(S("HTTP/1.1 "),I(http->error_status),S(" "),S(http->error_message),S("\r\n"
+	PRINT(S("HTTP/1.1 "),I64(http->error_status),S(" "),S(http->error_message),S("\r\n"
 	        "Connection: close\r\n"
 	        "Content-Type: text/html; charset=utf-8\r\n"
 	        "\r\n"
@@ -320,10 +320,11 @@ int main(int argc, char* argv[])
 	signal(SIGPIPE, SIG_IGN);
 
 	// Parse options
-	char c;
+	int c;
 	struct ip ip;
 	uint16 port;
 	while ((c = getopt(argc, argv, "l:")) != -1) {
+		printf("Option: %c (%d)\n", c, (int)c);
 		switch(c) {
 		case 'l':
 			if (!scan_ip(optarg, &ip))

@@ -5,20 +5,19 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include <libowfat/uint64.h>
 #include "context.h"
 
-#define S(s) ((struct tpl_part){T_STR, (long long)s, strlen(s)})
-#define E(s) ((struct tpl_part){T_ESC_HTML, (long long)s, strlen(s)})
-#define I(i) ((struct tpl_part){T_INT, (long long)i})
-#define U(u) ((struct tpl_part){T_UINT, (long long)u})
-#define L(l) ((struct tpl_part){T_LONG, (long long)l})
-#define UL(ul) ((struct tpl_part){T_ULONG, (long long)ul})
-#define X(ul) ((struct tpl_part){T_XLONG, (long long)ul})
-#define H(ull) ((struct tpl_part){T_HUMAN, (long long)ull})
-#define HK(ull) ((struct tpl_part){T_HUMANK, (long long)ull})
-#define HTTP_DATE(t) ((struct tpl_part){T_HTTP_DATE, (long long)t})
-#define IP(ip) ((struct tpl_part){T_IP, (long long)(&ip)})
-#define TIME_MS(ms) ((struct tpl_part){T_TIME_MS, (long long)ms})
+#define S(s) ((struct tpl_part){T_STR, (uint64)s, strlen(s)})
+#define E(s) ((struct tpl_part){T_ESC_HTML, (uint64)s, strlen(s)})
+#define I64(i) ((struct tpl_part){T_I64, (uint64)i})
+#define U64(u) ((struct tpl_part){T_U64, (uint64)u})
+#define X64(ul) ((struct tpl_part){T_X64, (uint64)ul})
+#define H(ull) ((struct tpl_part){T_HUMAN, (uint64)ull})
+#define HK(ull) ((struct tpl_part){T_HUMANK, (uint64)ull})
+#define HTTP_DATE(t) ((struct tpl_part){T_HTTP_DATE, (uint64)t})
+#define IP(ip) ((struct tpl_part){T_IP, (uint64)(&ip)})
+#define TIME_MS(ms) ((struct tpl_part){T_TIME_MS, (uint64)ms})
 #define TEND    ((struct tpl_part){0})
 
 #define PRINT(...) _print((context*)http, __VA_ARGS__, TEND)
@@ -59,9 +58,9 @@ enum tpl_part_type {
 	T_ESC_HTML,
 	T_INT,
 	T_UINT,
-	T_LONG,
-	T_ULONG,
-	T_XLONG,
+	T_I64,
+	T_U64,
+	T_X64,
 	T_HTTP_DATE,
 	T_HUMAN,
 	T_HUMANK,
@@ -71,7 +70,7 @@ enum tpl_part_type {
 
 struct tpl_part {
 	int type;
-	const long long param0;
+	const uint64 param0;
 	const size_t param1;
 };
 

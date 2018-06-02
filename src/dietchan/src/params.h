@@ -10,10 +10,10 @@
 #include "persistence.h"
 
 #define PARAM_I64(name, variable) \
-	if (case_equals(key, name)) { if (scan_long(val, &variable) != strlen(val)) HTTP_FAIL(BAD_REQUEST); return 0; }
+	if (case_equals(key, name)) { if (scan_int64(val, &variable) != strlen(val)) HTTP_FAIL(BAD_REQUEST); return 0; }
 
 #define PARAM_X64(name, variable) \
-	if (case_equals(key, name)) { if (scan_xlong(val, &variable) != strlen(val)) HTTP_FAIL(BAD_REQUEST); return 0; }
+	if (case_equals(key, name)) { if (scan_xint64(val, &variable) != strlen(val)) HTTP_FAIL(BAD_REQUEST); return 0; }
 
 #define PARAM_STR(name, variable) \
 	if (case_equals(key, name)) { if (variable) free(variable); variable = strdup(val); return 0; }

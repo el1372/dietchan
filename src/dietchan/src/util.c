@@ -240,7 +240,7 @@ size_t scan_duration(const char *s, uint64 *duration)
 		e += scan_whiteskip(e);
 
 		uint64 t=0;
-		e += (d = scan_ulong(e,&t));
+		e += (d = scan_uint64(e,&t));
 		if (d<=0) break;
 
 		e += scan_whiteskip(e);
@@ -268,36 +268,36 @@ size_t fmt_duration(char *out, uint64 duration)
 	uint64 r;
 	r = t / (60*60*24*365); t %= (60*60*24*365);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'y';
 	}
 	r = t / (60*60*24*30); t %= (60*60*24*30);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'M';
 	}
 	r = t / (60*60*24*7); t %= (60*60*24*7);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'w';
 	}
 	r = t / (60*60*24); t %= (60*60*24);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'd';
 	}
 	r = t / (60*60); t %= (60*60);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'h';
 	}
 	r = t / (60); t %= (60);
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 'm';
 	}
 	if (r>0) {
-		s += fmt_ulong(s, r);
+		s += fmt_uint64(s, r);
 		*s++ = 's';
 	}
 	return s-out;

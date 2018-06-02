@@ -200,7 +200,7 @@ static int thread_page_finish (http_context *http)
 	        "<div class='clear'></div>"
 	        "<hr>"
 	        "<input type='hidden' name='redirect' value='"),
-	          S(PREFIX), S("/"), E(board_name(board)), S("/"), UL(post_id(thread_first_post(thread))), S("'>"));
+	          S(PREFIX), S("/"), E(board_name(board)), S("/"), U64(post_id(thread_first_post(thread))), S("'>"));
 
 	print_mod_bar(http, is_mod_for_board(page->user, board));
 	PRINT(S("</form><hr>"));

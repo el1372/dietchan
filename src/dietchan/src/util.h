@@ -1,8 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include<unistd.h>
-#include<libowfat/array.h>
+#include <assert.h>
+#include <libowfat/array.h>
+#include <libowfat/scan.h>
+#include <libowfat/fmt.h>
 
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
@@ -27,6 +29,66 @@ size_t fmt_escapen(char *buf, const char *unescaped, size_t n);
 
 size_t scan_duration(const char *s, uint64 *duration);
 size_t fmt_duration(char *out, uint64 duration);
+
+static inline size_t scan_uint64(const char *src, uint64 *dest)
+{
+	if (sizeof(unsigned long)==8)
+		return scan_ulong(src, (unsigned long*)dest);
+	else if (sizeof(unsigned long)==4)
+		return scan_ulonglong(src, (unsigned long long*)dest);
+	else
+		assert(0);
+}
+
+static inline size_t scan_int64(const char *src, uint64 *dest)
+{
+	if (sizeof(long)==8)
+		return scan_long(src, (long*)dest);
+	else if (sizeof(long)==4)
+		return scan_longlong(src, (long long*)dest);
+	else
+		assert(0);
+}
+
+static inline size_t scan_xint64(const char *src, uint64 *dest)
+{
+	if (sizeof(unsigned long)==8)
+		return scan_xlong(src, (unsigned long*)dest);
+	else if (sizeof(unsigned long)==4)
+		return scan_xlonglong(src, (unsigned long long*)dest);
+	else
+		assert(0);
+}
+
+static inline size_t fmt_uint64(char *dest, uint64 src)
+{
+	if (sizeof(unsigned long)==8)
+		return fmt_ulong(dest, (unsigned long)src);
+	else if (sizeof(unsigned long)==4)
+		return fmt_ulonglong(dest, (unsigned long long)src);
+	else
+		assert(0);
+}
+
+static inline size_t fmt_int64(char *dest, uint64 src)
+{
+	if (sizeof(long)==8)
+		return fmt_long(dest, (long)src);
+	else if (sizeof(long)==4)
+		return fmt_longlong(dest, (long long)src);
+	else
+		assert(0);
+}
+
+static inline size_t fmt_xint64(char *dest, uint64 src)
+{
+	if (sizeof(unsigned long)==8)
+		return fmt_ulong(dest, (unsigned long)src);
+	else if (sizeof(unsigned long)==4)
+		return fmt_ulonglong(dest, (unsigned long long)src);
+	else
+		assert(0);
+}
 
 #define FMT_ESC_HTML_CHAR 6
 
