@@ -36,11 +36,11 @@ void _print_esc_html(context *ctx, const char *unescaped, ssize_t max_length)
 static void _print_internal(context *ctx, const struct tpl_part *part)
 {
 	if (likely(part->type == T_STR)) {
-		context_write_data(ctx, (const char*)part->param0, part->param1);
+		context_write_data(ctx, (const char*)(intptr_t)part->param0, part->param1);
 		return;
 	}
 	if (likely(part->type == T_ESC_HTML)) {
-		_print_esc_html(ctx, (const char*)part->param0, part->param1);
+		_print_esc_html(ctx, (const char*)(intptr_t)part->param0, part->param1);
 		return;
 	}
 	char buf[256];
@@ -64,7 +64,7 @@ static void _print_internal(context *ctx, const struct tpl_part *part)
 			context_write_data(ctx, buf, fmt_humank(buf, ((unsigned long long)part->param0)));
 			break;
 		case T_IP:
-			context_write_data(ctx, buf, fmt_ip(buf, ((struct ip*)part->param0)));
+			context_write_data(ctx, buf, fmt_ip(buf, ((struct ip*)(intptr_t)part->param0)));
 			break;
 		case T_TIME_MS:
 			context_write_data(ctx, buf, fmt_time(buf, (uint64)part->param0));
