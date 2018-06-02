@@ -24,9 +24,10 @@ static void db_replay_journal(db_obj *db);
 static void db_init(db_obj *db);
 static void db_grow(db_obj *db);
 
-//#define MAP_SIZE 1024UL*1024UL*1024UL*1024UL // 1 TB... ought to be enough for anyone.
 //#define MAP_SIZE 1024UL*1024UL*1024UL // 1 GB... use this for valgrind
-#define MAP_SIZE 256UL*1024UL*1024UL // 256 MB... use this for 32 bit systems
+#define MAP_SIZE ((sizeof(long)==8)? \
+                  (1024UL*1024UL*1024UL*1024UL):   /* 1 TB... ought to be enough for anyone */  \
+                  (256UL*1024UL*1024UL))           /* 256 MB... use this for 32 bit systems */
 
 db_obj* db_open(const char *file)
 {
