@@ -290,14 +290,21 @@ size_t fmt_time(char *out, uint64 ms)
 size_t scan_duration(const char *s, uint64 *duration)
 {
 	const char *e = s;
+	*duration = 0;
 	while (1) {
 		size_t d;
 
 		e += scan_whiteskip(e);
 
-		uint64 t=0;
-		e += (d = scan_uint64(e,&t));
-		if (d<=0) break;
+		int64 t=0;
+		e += (d = scan_int64(e,&t));
+		if (d<=0)
+			break;
+		if (t <= 0) {
+			if (*duration > 0)
+				e -= d;
+			break;
+		}
 
 		e += scan_whiteskip(e);
 
