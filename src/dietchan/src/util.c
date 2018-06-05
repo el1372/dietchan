@@ -329,6 +329,10 @@ size_t fmt_duration(char *out, uint64 duration)
 	char *s=out;
 	uint64 t = duration;
 	uint64 r;
+	if (duration <= 0) {
+		*out = '0';
+		return 1;
+	}
 	r = t / (60*60*24*365); t %= (60*60*24*365);
 	if (r>0) {
 		s += fmt_uint64(s, r);
