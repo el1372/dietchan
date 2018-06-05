@@ -636,7 +636,8 @@ static ssize_t http_read_multipart_header(http_context *http, char *buf, size_t 
 	if (line_length-2 == 0) {
 		// All headers received
 		http->multipart_state = MULTIPART_STATE_CONTENT;
-		if (array_bytes(&http->multipart_content_type) == 0) {
+		if (array_bytes(&http->multipart_content_type) == 0 &&
+		    array_bytes(&http->multipart_filename) == 0) {
 			// Normal form data
 			// nothing to do here
 		} else {
@@ -659,7 +660,8 @@ static ssize_t http_read_multipart_header(http_context *http, char *buf, size_t 
 
 static ssize_t http_read_multipart_content(http_context *http, char *buf, size_t length)
 {
-	if (array_bytes(&http->multipart_content_type) == 0) {
+	if (array_bytes(&http->multipart_content_type) == 0 &&
+	    array_bytes(&http->multipart_filename) == 0) {
 		// Normal form data (POST)
 		ssize_t consumed = http_read_until_string(http, buf, length, array_start(&http->multipart_full_boundary), MAX_POST_PARAM_LENGTH);
 		if (consumed < 0)

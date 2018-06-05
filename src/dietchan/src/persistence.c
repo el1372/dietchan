@@ -414,6 +414,8 @@ struct session *find_session_by_sid(const char *sid)
 
 void session_destroy(struct session *session)
 {
+	if (!session)
+		return;
 	struct session *next_session = session_next_session(session);
 	struct session *prev_session = session_prev_session(session);
 	if (master_first_session(master) == session)
