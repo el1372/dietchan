@@ -19,7 +19,7 @@ db_hashmap captcha_tbl;
 static void insert_ban_into_hashmap(struct ban *ban);
 static void delete_ban_from_hashmap(struct ban *ban);
 
-int db_init(const char *file)
+int db_init(const char *file, int create_default)
 {
 	db = db_open(file);
 	if (!db)
@@ -42,46 +42,27 @@ int db_init(const char *file)
 		db_hashmap_init(&captcha_tbl, db, 0, uint64_hash, 0, uint64_eq, 0);
 		master_set_captcha_tbl(master, db_hashmap_marshal(&captcha_tbl));
 
-		/* Temporary */
-		struct board *board = board_new();
-		board_set_name(board, "c");
-		board_set_title(board, "Pufferüberlauf");
-		board_set_id(board, 1);
-		master_set_board_counter(master, 1);
+		if (create_default) {
+			struct board *board = board_new();
+			board_set_name(board, "c");
+			board_set_title(board, "Pufferüberlauf");
+			board_set_id(board, 1);
+			master_set_board_counter(master, 1);
 
-		//struct thread *thread = thread_new();
-		//thread_set_board(thread, board);
+			master_set_first_board(master, board);
+			master_set_last_board(master, board);
 
-		//struct post *post = post_new();
-		//post_set_thread(post, thread);
-		//post_set_id(post, 1);
-		//db_hashmap_insert(&post_tbl, &post_id(post), post);
-		//post_set_subject(post, "");
-		//post_set_username(post, "Felix");
-		//post_set_password(post, crypt_password("secret"));
-		//post_set_text(post, "Hab eine Bilderbrett-Software in C gehackt. Natürlich mit "
-		//                    "dietlibc, libowfat und selbstgefrickelter Persistierungsschicht.");
+			struct user *admin = user_new();
+			user_set_id(admin, 1);
+			user_set_type(admin, USER_ADMIN);
+			user_set_name(admin, "admin");
+			user_set_password(admin, crypt_password("admin"));
+			user_set_email(admin, "");
 
-		//thread_set_first_post(thread, post);
-		//thread_set_last_post(thread, post);
-
-		//board_set_first_thread(board, thread);
-		//board_set_last_thread(board, thread);
-
-		master_set_first_board(master, board);
-		master_set_last_board(master, board);
-		//master_set_post_counter(master, post_id(post));
-
-		struct user *admin = user_new();
-		user_set_id(admin, 1);
-		user_set_type(admin, USER_ADMIN);
-		user_set_name(admin, "admin");
-		user_set_password(admin, crypt_password("admin"));
-		user_set_email(admin, "");
-
-		master_set_first_user(master, admin);
-		master_set_last_user(master, admin);
-		master_set_user_counter(master, 1);
+			master_set_first_user(master, admin);
+			master_set_last_user(master, admin);
+			master_set_user_counter(master, 1);
+		}
 
 		commit();
 	} else {

@@ -40,7 +40,7 @@ static inline size_t scan_uint64(const char *src, uint64 *dest)
 		assert(0);
 }
 
-static inline size_t scan_int64(const char *src, uint64 *dest)
+static inline size_t scan_int64(const char *src, int64 *dest)
 {
 	if (sizeof(long)==8)
 		return scan_long(src, (long*)dest);

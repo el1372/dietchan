@@ -13,7 +13,7 @@ extern db_hashmap post_tbl;
 extern db_hashmap ban_tbl;
 extern db_hashmap captcha_tbl;
 
-int   db_init(const char *file);
+int   db_init(const char *file, int create_default);
 char* db_strdup(const char *s);
 void* db_alloc0(size_t size);
 void begin_transaction();
@@ -211,8 +211,8 @@ struct upload {
 	/* char* */   db_ptr original_name;
 	/* char* */   db_ptr mime_type;
 	uint64               size;
-	int                  width;
-	int                  height;
+	int32                width;
+	int32                height;
 	int64                duration; /* milliseconds */
 	upload_state         state;
 

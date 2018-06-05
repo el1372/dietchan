@@ -24,6 +24,9 @@
 #include "captcha.h"
 #include "tpl.h"
 
+#include "export.h"
+#include "import.h"
+
 #include "pages/static.h"
 #include "pages/post.h"
 #include "pages/thread.h"
@@ -324,7 +327,6 @@ int main(int argc, char* argv[])
 	struct ip ip;
 	uint16 port;
 	while ((c = getopt(argc, argv, "l:")) != -1) {
-		printf("Option: %c (%d)\n", c, (int)c);
 		switch(c) {
 		case 'l':
 			if (!scan_ip(optarg, &ip))
@@ -341,10 +343,21 @@ int main(int argc, char* argv[])
 			break;
 
 		case '?':
-		default:
 		print_usage:
 			write(2, usage, strlen(usage));
 			return -1;
+		}
+	}
+
+	if (optind < argc) {
+		if (case_equals(argv[optind], "import")) {
+			if (db_init("imported_db", 0) < 0)
+				return -1;
+
+			return import();
+		} else if (case_equals(argv[optind], "export")) {
+			export();
+			return 0;
 		}
 	}
 
@@ -352,8 +365,9 @@ int main(int argc, char* argv[])
 	if (!listener_count)
 		add_listener((struct ip){IP_V4, {127,0,0,1}}, 4000);
 
+
 	// Open database
-	if (db_init("dietchan_db") < 0)
+	if (db_init("dietchan_db", 1) < 0)
 		return -1;
 
 	// Create some required directories if they don't exist
