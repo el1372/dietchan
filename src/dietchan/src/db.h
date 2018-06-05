@@ -7,7 +7,7 @@
 
 typedef int64 db_ptr;
 
-#define BUCKET_COUNT    64
+#define BUCKET_COUNT    56
 
 typedef unsigned char uchar;
 
@@ -21,10 +21,12 @@ typedef struct db_bucket {
 #define MIN_BUCKET_SIZE (sizeof(db_bucket))
 
 typedef struct db_header {
+	uint64 version;
 	uint64 size;
 	uint64 bucket_count;
 	db_ptr master_pointer;
 	db_ptr buckets[BUCKET_COUNT];
+	char _padding[7*8+8];
 } db_header;
 
 

@@ -102,7 +102,7 @@ db_obj* db_open(const char *file)
 	}
 
 	db->header = (db_header*)db->priv_map;
-	db->bucket0 = (char*)db->header + sizeof(db_header);
+	db->bucket0 = (char*)db->header + sizeof(db_header) - 1; /* -1 for alignment */
 
 	if (db_check_journal(db) == 1) {
 		db_replay_journal(db);
@@ -567,7 +567,7 @@ void db_commit(db_obj *db)
 				db_ptr region_size = region_end - region_start;
 
 				journal_entry_type type = JOURNAL_WRITE;
-				printf("Invalidate %x - %x (%d)\n", (int)region_start, (int)region_end, (int)region_size);
+				//printf("Invalidate %x - %x (%d)\n", (int)region_start, (int)region_end, (int)region_size);
 				if (unlikely(write(db->journal_fd, &type, sizeof(journal_entry_type)) < (ssize_t)sizeof(journal_entry_type)))
 					goto fail;
 				if (unlikely(write(db->journal_fd, &region_start, sizeof(db_ptr)) < (ssize_t)sizeof(db_ptr)))
