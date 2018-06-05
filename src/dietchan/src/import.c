@@ -98,15 +98,15 @@ struct json_token json_get_token()
 				++off;
 				size_t dest_len=0;
 				// Uuuurgh... scan_jsonescape doesn't (necessarily) terminate on \0
-				b[len] = '"';
+				//b[len] = '"';
 				//size_t scanned = scan_jsonescape(&b[off], 0, &dest_len);
-				// URGH scan_jsonescape is completely broken. Use scan_cescape. UGLY!
-				size_t scanned = scan_cescape(&b[off], 0, &dest_len);
+				// URGH libowfat's scan_jsonescape is completely broken. Use our own function.
+				size_t scanned = scan_json_str(&b[off], 0, &dest_len);
 				if (off+scanned >= len)
 					continue;
 				token.string = malloc(scanned+1);
-				token.string[scan_cescape(&b[off], token.string, &dest_len)] = '\0';
-				off += scanned+1;
+				token.string[scan_json_str(&b[off], token.string, &dest_len)] = '\0';
+				off += scanned;
 				return token;
 			}
 			case ',':
@@ -461,7 +461,12 @@ static int parse_board(void *unused)
 		EXPECT(TOK_COLON);
 
 		struct json_token val = {0};
-		if (str_equal(token.string, "name")) {
+		if (str_equal(token.string, "id")) {
+			EXPECT2(TOK_NUMBER, &val);
+			board_set_id(board, val.number);
+			if (board_id(board) > master_board_counter(master))
+				master_set_board_counter(master, board_id(board));
+		} else if (str_equal(token.string, "name")) {
 			EXPECT2(TOK_STRING, &val);
 			board_set_name(board, val.string);
 		} else if (str_equal(token.string, "title")) {

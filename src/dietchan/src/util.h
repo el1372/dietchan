@@ -16,6 +16,7 @@ void array_chop_beginning(array *a, size_t bytes);
 size_t scan_whiteskip(const char *s);
 size_t scan_nonwhiteskip(const char *s);
 size_t scan_quoted_str(const char *s, char *unquoted, size_t *unquoted_length);
+size_t scan_json_str(const char *s, char *unquoted, size_t *unquoted_length);
 size_t scan_percent_str(const char *s, char *decoded, size_t *decoded_length);
 
 void generate_random_string(char *output, size_t length, const char *charset);

@@ -92,6 +92,62 @@ size_t scan_quoted_str(const char *s, char *unquoted, size_t *unquoted_length)
 	return (size_t)(t-s);
 }
 
+size_t scan_json_str(const char *s, char *unquoted, size_t *unquoted_length)
+{
+	size_t l = 0;
+	const char *t = s;
+	char *o = unquoted;
+	int escaped = 0;
+	for (; *t; ++t) {
+		if (!escaped) {
+			if (*t == '"') {
+				++t;
+				break;
+			} else if (*t == '\\')
+				escaped = 1;
+			else {
+				if (o) {
+					*o = *t;
+					++o;
+				}
+				++l;
+			}
+		} else {
+			escaped = 0;
+			if (unlikely(*t == 'u')) {
+				uint64 code=0;
+				size_t scanned= scan_xint64(t+1, &code);
+				if (scanned) {
+					size_t charlen = fmt_utf8(o, code);
+					l += charlen;
+					if (o)
+						o+=charlen;
+					t += scanned;
+				}
+			} else {
+				char c = 0;
+				switch (*t) {
+					case 'b':  c = '\b'; break;
+					case 'f':  c = '\f'; break;
+					case 'n':  c = '\n'; break;
+					case 'r':  c = '\r'; break;
+					case 't':  c = '\t'; break;
+					default:   c = *t; break;
+				}
+				if (o) {
+					*o = c;
+					++o;
+				}
+				++l;
+			}
+		}
+	}
+	if (unquoted_length)
+		*unquoted_length = l;
+
+	return (size_t)(t-s);
+}
+
 size_t scan_percent_str(const char *s, char *decoded, size_t *decoded_length)
 {
 	size_t l = 0;

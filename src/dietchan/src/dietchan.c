@@ -356,6 +356,8 @@ int main(int argc, char* argv[])
 
 			return import();
 		} else if (case_equals(argv[optind], "export")) {
+			if (db_init("dietchan_db", 1) < 0)
+				return -1;
 			export();
 			return 0;
 		}
