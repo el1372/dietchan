@@ -24,8 +24,7 @@ static size_t scan_tag(const char *s, const char **tag, int *open)
 
 	t += scan_whiteskip(t);
 
-	for (int i=0; TAGS[i]; ++i) {
-		*tag = TAGS[i];
+	for (int i=0; *tag=TAGS[i]; ++i) {
 		if (case_starts(t, *tag) && (isspace(t[strlen(*tag)]) || t[strlen(*tag)] == ']'))
 			break;
 	}
