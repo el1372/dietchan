@@ -68,11 +68,20 @@ static size_t scan_quote(const char *s, size_t *depth)
 {
 	size_t i = 0;
 	*depth = 0;
-	while (isspace(s[i]) || s[i]=='>') {
-		if (s[i] == '>') ++(*depth);
+	uint64 dummy=0;
+	while (isspace(s[i]) && s[i]!='\n' || s[i]=='>') {
+		if (s[i] == '>') {
+			if (scan_reference(&s[i], &dummy))
+				break;
+			else
+				++(*depth);
+		}
 		++i;
 	}
-	return i;
+	if (*depth == 0)
+		return 0;
+	else
+		return i;
 }
 
 void write_bbcode(http_context *http, const char *s, struct thread *current_thread)
@@ -195,7 +204,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			                   PRINT(S("'>"));
 			                   WRITE_ESCAPED(2+i);
 			                   PRINT(S("</a>"));
-			                   ss += 2+i;
+			                   ss += i;
 			               } else {
 			                   WRITE_ESCAPED(2+i);
 			                   ss += 2+i;
