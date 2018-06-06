@@ -85,8 +85,10 @@ char* db_strdup(const char *s)
 void* db_alloc0(size_t size)
 {
 	void *rec = db_alloc(db, size);
-	if (rec)
+	if (rec) {
 		byte_zero(rec, size);
+		db_invalidate_region(db, rec, size);
+	}
 	return rec;
 }
 
