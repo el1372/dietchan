@@ -204,11 +204,10 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			                   PRINT(S("'>"));
 			                   WRITE_ESCAPED(2+i);
 			                   PRINT(S("</a>"));
-			                   ss += i;
 			               } else {
-			                   WRITE_ESCAPED(2+i);
-			                   ss += 2+i;
+			                   WRITE_ESCAPED(i);
 			               }
+			               ss += i;
 			           } else {
 			               WRITE_ESCAPED(1);
 			               ++ss;
