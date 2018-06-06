@@ -41,16 +41,38 @@ static size_t scan_tag(const char *s, const char **tag, int *open)
 	return (t-s);
 }
 
-void write_bbcode_tag(http_context *http, const char *tag, int open)
+static void write_bbcode_tag(http_context *http, const char *tag, int open)
 {
 	if (tag == "spoiler")
 		PRINT(open?S("<span class='spoiler'>"):S("</span>"));
 	else if (tag == "code")
 		PRINT(open?S("<pre>"):S("</pre>"));
 	else if (tag == "q")
+		PRINT(open?S("<span class='quote inline'><span class='qdeco'>&gt;</span>"):S("</span>"));
+	else if (tag == ">")
 		PRINT(open?S("<span class='quote'>"):S("</span>"));
 	else
 		PRINT(open?S("<"):S("</"), S(tag), S(">"));
+}
+
+static size_t scan_reference(const char *s, uint64 *post_id)
+{
+	size_t i=0;
+	if (s[0] == '>' && s[1] == '>' && (i=scan_uint64(&s[2], post_id)))
+		return 2+i;
+	else
+		return 0;
+}
+
+static size_t scan_quote(const char *s, size_t *depth)
+{
+	size_t i = 0;
+	*depth = 0;
+	while (isspace(s[i]) || s[i]=='>') {
+		if (s[i] == '>') ++(*depth);
+		++i;
+	}
+	return i;
 }
 
 void write_bbcode(http_context *http, const char *s, struct thread *current_thread)
@@ -119,8 +141,32 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 		} while(0)
 
 	int code = 0;
+	// Quote depth of previous line
+	size_t prev_quote_depth = 0;
+	// Quote depth of current line
+	size_t quote_depth = 0;
+	// Flag indicating we just started a new line
+	int newline = 1;
 
 	for (const char *ss = s; *ss != '\0'; ) {
+		if (newline) {
+			prev_quote_depth = quote_depth;
+			quote_depth = 0;
+			i = scan_quote(ss, &quote_depth);
+
+			// If new depth is lower, close tags
+			for (size_t j=quote_depth; j<prev_quote_depth; ++j)
+				CLOSE_TAG(">",0);
+			// If new depth is higher, open tags
+			for (size_t j=prev_quote_depth; j<quote_depth; ++j)
+				OPEN_TAG(">");
+			// Write > decoration
+			for (size_t j=0; j<quote_depth; ++j)
+				PRINT(S("<span class='qdeco'>&gt;</span>"));
+			ss += i;
+
+			newline = 0;
+		}
 		switch (*ss) {
 			case '\r': ++ss;
 			           break;
@@ -129,7 +175,8 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               ++ss;
 			               break;
 			           }
-			           CLOSE_TAG("q", 0);
+			           //CLOSE_TAG(">", 0);
+			           newline = 1;
 			           PRINT(S("<br>"));
 			           ++ss;
 			           break;
@@ -139,7 +186,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               break;
 			           }
 			           uint64 post_id=0;
-			           if (ss[1] == '>' && (i=scan_uint64(&ss[2], &post_id))) {
+			           if (i=scan_reference(ss,&post_id)) {
 			               // Reference to a post
 			               struct post *post=find_post_by_id(post_id);
 			               if (post) {
@@ -154,18 +201,6 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			                   ss += 2+i;
 			               }
 			           } else {
-			               // Quote
-			               int is_quote = 1;
-			               int i = -1;
-			               while (&ss[i] >= s && ss[i] != '\n') {
-			                   if (!isspace(ss[i])) {
-			                       is_quote = 0;
-			                       break;
-			                   }
-			                   --i;
-			               }
-			               if (is_quote)
-			                   OPEN_TAG("q");
 			               WRITE_ESCAPED(1);
 			               ++ss;
 			           }
@@ -179,6 +214,8 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			               if (tag == "code") {
 			                   if (open && !code)
 			                       CLOSE_ALL();
+			                   if (!open & code)
+			                       newline = 1; // Since [code] is a block element, treat like newline
 			                   code = open;
 			               }
 			               if (open)
