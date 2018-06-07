@@ -202,7 +202,7 @@ void write_bbcode(http_context *http, const char *s, struct thread *current_thre
 			                   PRINT(S("<a href='"));
 			                   print_post_url(http, post, post_thread(post) != current_thread);
 			                   PRINT(S("'>"));
-			                   WRITE_ESCAPED(2+i);
+			                   WRITE_ESCAPED(i);
 			                   PRINT(S("</a>"));
 			               } else {
 			                   WRITE_ESCAPED(i);
