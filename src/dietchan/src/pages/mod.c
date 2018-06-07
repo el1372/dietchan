@@ -378,9 +378,6 @@ static int  mod_page_finish (http_context *http)
 	// Parse ban duration
 	int64 duration = 0;
 	if (do_ban && page->submitted) {
-		// FIXME: Right now parsed as seconds.
-		// TODO: Allow more complex format like (1d 12h)
-
 		if (str_equal(page->duration, "") ||
 			page->duration[scan_duration(page->duration, &duration)] != '\0') {
 			PRINT(S("<p class='error'>Ungültige Bann-Dauer</p>"));

@@ -300,10 +300,13 @@ size_t scan_duration(const char *s, uint64 *duration)
 		e += (d = scan_int64(e,&t));
 		if (d<=0)
 			break;
-		if (t <= 0) {
-			if (*duration > 0)
+		if (t < 0) {
+			if (*duration > 0) {
 				e -= d;
-			break;
+			} else {
+				*duration = -1;
+				break;
+			}
 		}
 
 		e += scan_whiteskip(e);
@@ -329,8 +332,8 @@ size_t fmt_duration(char *out, uint64 duration)
 	char *s=out;
 	uint64 t = duration;
 	uint64 r;
-	if (duration <= 0) {
-		*out = '0';
+	if (duration < 0) {
+		*out = '-1';
 		return 1;
 	}
 	r = t / (60*60*24*365); t %= (60*60*24*365);

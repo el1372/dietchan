@@ -328,6 +328,9 @@ static int  dashboard_page_finish (http_context *http)
 			if (ban_type(ban) == BAN_FLOOD)
 				continue;
 
+			if (ban_duration(ban) == 0)
+				continue;
+
 			if (!any_ban) {
 				any_ban = 1;
 				PRINT(S("<p>"
@@ -367,7 +370,7 @@ static int  dashboard_page_finish (http_context *http)
 			PRINT(S(  "</td>"
 			          "<td>"), HTTP_DATE(ban_timestamp(ban)), S("</td>"
 			          "<td>"),
-			            (ban_duration(ban) > 0)?HTTP_DATE(ban_timestamp(ban) + ban_duration(ban)):S("Unbegrenzt"), S(
+			            (ban_duration(ban) >= 0)?HTTP_DATE(ban_timestamp(ban) + ban_duration(ban)):S("Unbegrenzt"), S(
 			          "</td>"
 			          "<td>"),
 			            ban_reason(ban)?E(ban_reason(ban)):S(""), S(

@@ -25,8 +25,6 @@ int ban_matches_board(struct ban *ban, uint64 board_id)
 
 void find_bans(struct ip *ip, find_bans_callback callback, void *extra)
 {
-	//uint64 now = time(NULL);
-
 	struct ip_range range = {0};
 	range.ip = *ip;
 
@@ -37,13 +35,8 @@ void find_bans(struct ip *ip, find_bans_callback callback, void *extra)
 
 	while (range.range >= 0) {
 		for (struct ban *ban = db_hashmap_get(&ban_tbl, &range); ban; ban=ban_next_in_bucket(ban)) {
-			if (ban_enabled(ban)/* &&
-			    ban_target(ban) == BAN_TARGET_POST*//* &&*/
-			    /*((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&*/
-			    /*ban_matches_ip(ban, ip) *//*&&
-			    ban_matches_board(ban, board_id(board))*/) {
-
-			    callback(ban, ip, extra);
+			if (ban_enabled(ban)) {
+				callback(ban, ip, extra);
 			}
 		}
 		--(range.range);
@@ -63,7 +56,7 @@ static void is_banned_callback(struct ban *ban, struct ip *ip, void *extra)
 	struct is_banned_info *info = (struct is_banned_info*)extra;
 	if (ban_type(ban) == info->type &&
 	    ban_target(ban) == info->target &&
-	    ((ban_duration(ban) <= 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
+	    ((ban_duration(ban) < 0) || (now <= ban_timestamp(ban) + ban_duration(ban))) &&
 	    (!info->board || ban_matches_board(ban, board_id(info->board)))) {
 		if (ban_duration(ban) > 0) {
 			int64 expires = ban_timestamp(ban) + ban_duration(ban);
@@ -136,7 +129,7 @@ void purge_expired_bans()
 	struct ban *ban = master_first_ban(master);
 	while (ban) {
 		struct ban *next = ban_next_ban(ban);
-		if (ban_duration(ban) > 0 && now > ban_timestamp(ban) + ban_duration(ban)) {
+		if (ban_duration(ban) >= 0 && now > ban_timestamp(ban) + ban_duration(ban)) {
 			delete_ban(ban);
 		}
 		ban = next;
