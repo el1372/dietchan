@@ -90,7 +90,7 @@ static void print_board_nav(http_context *http, struct board *board, int64 curre
 {
 	struct board_page *page = (struct board_page*)http->info;
 
-	int64 page_count=(board_thread_count(board))/THREADS_PER_PAGE + 1;
+	int64 page_count=(board_thread_count(board)-1)/THREADS_PER_PAGE + 1;
 
 	PRINT(S("<div class='board-nav'>"));
 
@@ -127,7 +127,7 @@ static int  board_page_finish (http_context *http)
 		return ERROR;
 	}
 
-	int64 page_count=(board_thread_count(board))/THREADS_PER_PAGE + 1;
+	int64 page_count=(board_thread_count(board)-1)/THREADS_PER_PAGE + 1;
 	int64 range_start=page->page*THREADS_PER_PAGE;
 	int64 range_end=range_start+THREADS_PER_PAGE;
 
