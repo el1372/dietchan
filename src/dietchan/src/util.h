@@ -84,9 +84,9 @@ static inline size_t fmt_int64(char *dest, uint64 src)
 static inline size_t fmt_xint64(char *dest, uint64 src)
 {
 	if (sizeof(unsigned long)==8)
-		return fmt_ulong(dest, (unsigned long)src);
+		return fmt_xlong(dest, (unsigned long)src);
 	else if (sizeof(unsigned long)==4)
-		return fmt_ulonglong(dest, (unsigned long long)src);
+		return fmt_xlonglong(dest, (unsigned long long)src);
 	else
 		assert(0);
 }
