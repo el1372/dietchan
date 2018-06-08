@@ -86,7 +86,7 @@ static void captcha_job_start()
 	strcat(command, info->solution);
 	strcat(command, " -r ");
 	fmt_int(&command[strlen(command)], seed);
-	strcat(command, " -d 140x50 -s 4");
+	strcat(command, " -d 140x50 -s 4 -q");
 	strcat(command, " | convert tga:- -resize 25% png8:" DOC_ROOT "/captchas/");
 	fmt_xint64(&command[strlen(command)], info->id);
 	strcat(command, ".png");
