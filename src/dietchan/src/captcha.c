@@ -86,8 +86,8 @@ static void captcha_job_start()
 	strcat(command, info->solution);
 	strcat(command, " -r ");
 	fmt_int(&command[strlen(command)], seed);
-	strcat(command, " -d 140x50 -s 4 -q");
-	strcat(command, " | convert tga:- -resize 25% png8:" DOC_ROOT "/captchas/");
+	strcat(command, " -d 140x50 -s 4 -S 4 -q");
+	strcat(command, " | convert tga:- png8:" DOC_ROOT "/captchas/");
 	fmt_xint64(&command[strlen(command)], info->id);
 	strcat(command, ".png");
 
@@ -140,8 +140,8 @@ static void captcha_job_finish(job_context *job, int status)
 
 void generate_captchas()
 {
-	// Run up to 10 jobs in parallel
-	for (int i=0; i<10; ++i) {
+	// Run up to 4 jobs in parallel
+	for (int i=0; i<4; ++i) {
 		// Generate up to 1000 captchas
 		if (master_captcha_count(master) + in_flight >= 1000)
 			return;
