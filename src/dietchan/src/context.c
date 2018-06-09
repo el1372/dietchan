@@ -203,10 +203,9 @@ size_t context_get_buffer(context *ctx, void **buf)
 		ctx->chunk = new_chunk;
 		ctx->buf_size = chunk_size;
 		ctx->buf_offset = 0;
-		*buf = (char*)ctx->chunk+sizeof(struct chunk);
-	} else {
-		*buf = (char*)ctx->chunk+sizeof(struct chunk)+ctx->buf_offset;
 	}
+	*buf = (char*)ctx->chunk+sizeof(struct chunk)+ctx->buf_offset;
+	assert(ctx->buf_offset < ctx->buf_size);
 	return (ctx->buf_size-ctx->buf_offset);
 }
 

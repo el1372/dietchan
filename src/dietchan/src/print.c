@@ -14,8 +14,9 @@ void _print_esc_html(context *ctx, const char *unescaped, ssize_t max_length)
 		size_t available = context_get_buffer(ctx, (void**)&buf);
 		size_t written = 0;
 		while (available >= FMT_ESC_HTML_CHAR && s<=e) {
-			written += html_escape_char(buf + written, *s);
-			available -= written;
+			size_t d = html_escape_char(buf + written, *s);
+			available -= d;
+			written += d;
 			++s;
 		}
 		context_consume_buffer(ctx, written);
