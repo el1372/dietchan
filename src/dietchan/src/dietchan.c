@@ -113,7 +113,7 @@ int request (http_context *http, http_method method, char *path, char *query)
 		goto found;
 	}
 
-	if (str_start(path, PREFIX "/") && path[strlen(path)-1] != '/') {
+	if (str_start(path, PREFIX "/") && strchr(path+strlen(PREFIX "/"), '/') && path[strlen(path)-1] != '/') {
 		thread_page_init(http);
 		goto found;
 	}

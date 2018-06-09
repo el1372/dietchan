@@ -39,13 +39,25 @@ static int board_page_request (http_context *http, http_method method, char *pat
 {
 	struct board_page *page = (struct board_page*)http->info;
 
-	const char *prefix = PREFIX "/";
+	char *prefix = alloca(strlen(PREFIX) + 2);
+	strcpy(prefix, PREFIX);
+	strcat(prefix, "/");
 
 	if (method == HTTP_POST)
 		HTTP_FAIL(METHOD_NOT_ALLOWED);
 
-	if (!case_starts(path, prefix) || path[strlen(path)-1] != '/')
+	if (!case_starts(path, prefix))
 		HTTP_FAIL(NOT_FOUND);
+
+	// Only missing trailing slash? Redirect.
+	if (path[strlen(path)-1] != '/') {
+		const char *board_name = path+strlen(prefix);
+		if (find_board_by_name(board_name)) {
+			PRINT_REDIRECT("301 Moved Permanently", S(prefix), S(board_name), S("/"));
+			return ERROR;
+		} else
+			HTTP_FAIL(NOT_FOUND);
+	}
 
 	page->board = strdup(&path[strlen(prefix)]);
 	page->board[strlen(page->board)-1] = '\0';
