@@ -330,6 +330,7 @@ void write_page_css(http_context *http)
 	        ".text {"
 	          "margin-top: .5em;"
 	          "overflow-wrap: break-word;"
+	          "overflow: hidden;"
 	        "}"
 	        "div.files {"
 	          "margin-bottom: .25em;"
