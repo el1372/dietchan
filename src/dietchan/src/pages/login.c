@@ -7,6 +7,8 @@
 #include "../tpl.h"
 #include "../util.h"
 
+#include "../locale.h"
+
 static int  login_page_get_param (http_context *http, char *key, char *val);
 static int  login_page_post_param (http_context *http, char *key, char *val);
 static int  login_page_cookie (http_context *http, char *key, char *val);
@@ -85,14 +87,14 @@ static int  login_page_finish (http_context *http)
 		          "<input type='hidden' name='redirect' value='"), E(page->redirect), S("'>"
 		          "<p><table>"
 		            "<tr>"
-		              "<th><label for='username'>Name</label></th>"
+		              "<th><label for='username'>" _("Name") "</label></th>"
 		              "<td><input type='text' name='username'></td>"
 		            "</tr><tr>"
-		              "<th><label for='password'>Passwort</label></th>"
+		              "<th><label for='password'>" _("Password") "</label></th>"
 		              "<td><input type='password' name='password'></td>"
 		            "</tr>"
 		          "</table></p>"
-		          "<p><input type='submit' value='Einloggen'></p>"
+		          "<p><input type='submit' value='" _("Log in") "'></p>"
 		        "</form>"));
 		print_bottom_bar(http);
 		print_page_footer(http);
@@ -102,16 +104,16 @@ static int  login_page_finish (http_context *http)
 	if (!page->password || str_equal(page->password, "")) {
 		PRINT_STATUS_HTML("400 Bad Request");
 		PRINT_BODY();
-		PRINT(S("<h1>Du musst ein Passwort eingeben.</h1>"));
+		PRINT(S("<h1>" _("You must enter a password") ".</h1>"));
 		PRINT_EOF();
 		return 0;
 	}
 
 	struct user *user = find_user_by_name(page->username);
 	if (!user || !check_password(user_password(user), page->password)) {
-		PRINT_STATUS_HTML("403 Du kommst hier nid rein");
+		PRINT_STATUS_HTML("403 " _("Forbidden"));
 		PRINT_BODY();
-		PRINT(S("<h1>Benutzername oder Passwort falsch.</h1>"));
+		PRINT(S("<h1>" _("Wrong username or password") ".</h1>"));
 		PRINT_EOF();
 		return 0;
 	}

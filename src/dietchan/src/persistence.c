@@ -9,6 +9,8 @@
 #include "util.h"
 #include "config.h"
 
+#include "locale.h"
+
 db_obj *db;
 struct master *master;
 db_hashmap post_tbl;
@@ -45,7 +47,7 @@ int db_init(const char *file, int create_default)
 		if (create_default) {
 			struct board *board = board_new();
 			board_set_name(board, "c");
-			board_set_title(board, "Pufferüberlauf");
+			board_set_title(board, _("Buffer Overflow"));
 			board_set_id(board, 1);
 			master_set_board_counter(master, 1);
 

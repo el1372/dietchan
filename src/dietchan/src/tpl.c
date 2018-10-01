@@ -17,6 +17,8 @@
 #include "print.h"
 #include "permissions.h"
 
+#include "locale.h"
+
 void print_reply_form(http_context *http, struct board *board, struct thread *thread, struct captcha *captcha, struct user *user)
 {
 	PRINT(S("<form class='reply' action='"), S(PREFIX), S("/post' method='post' enctype='multipart/form-data' novalidate autocomplete='on'>"), S(
@@ -37,18 +39,18 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 	        "<table>"
 	          "<tr>"
 	            "<th colspan='3'>"
-	            "<h3>"), thread?S("Antwort erstellen"):S("Neuen Faden erstellen"),S("</h3>"
+	            "<h3>"), thread?S(_("Post Reply")):S(_("Create a new thread")),S("</h3>"
 	          "</th>"
 	          "</tr>"
 	          "<tr>"
-	            "<th><label for='sage'>Säge</label></th>"
+	            "<th><label for='sage'>"_("Sage")"</label></th>"
 	            "<td colspan='2'><input type='checkbox' name='sage' value='1'></td>"
 	          "</tr>"
 	          "<tr>"
-	            "<th><label for='subject'>Betreff</label></th>"
+	            "<th><label for='subject'>"_("Subject")"</label></th>"
 	            "<td><input name='subject' type='text'></td>"
 	            "<td width='1'>"
-	             "<input type='submit' value='"), thread?S("Antwort erstellen"):S("Faden erstellen"), S("'>"
+	             "<input type='submit' value='"), thread?S(_("Post Reply")):S(_("Post Thread")), S("'>"
 	            "</td>"
 	          "</tr>"
 	          "<tr>"
@@ -57,7 +59,7 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 		PRINT(S("<td><input name='username2' type='text' autocomplete='nein'></td>"
 		        "<td>"
 		          "<select name='role'>"
-		            "<option value=''>Anonym</option>"
+		            "<option value=''>"_("Anon")"</option>"
 		            "<option value='mod'>Mod</option>"),
 		            (user_type(user) == USER_ADMIN)?
 		              S("<option value='admin'>Admin</option>"):S(""), S(
@@ -68,22 +70,22 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 	}
 	PRINT(S(  "</tr>"
 	          "<tr>"
-	            "<th><label for='text2'>Kommentar</label></th>"
+	            "<th><label for='text2'>"_("Comment")"</label></th>"
 	            "<td colspan='2'><textarea name='text2'></textarea></td>"
 	          "</tr>"
 	          "<tr>"
-	            "<th title='Max. "), HK(MAX_UPLOAD_SIZE), S("B pro Datei'><label for='text'>Dateien</label>"
+	            "<th title='Max. "), HK(MAX_UPLOAD_SIZE), S(_("B per file")"'><label for='text'>"_("Files")"</label>"
 	                 "<span class='sub-label'> (≤ 4)</span>"
 	            "</th>"
 	            "<td colspan='2'>"
-	                "<input type='file' name='file' multiple required title='Max. "), HK(MAX_UPLOAD_SIZE), S("B pro Datei'><br>"
+	                "<input type='file' name='file' multiple required title='Max. "), HK(MAX_UPLOAD_SIZE), S(_("B per file")"'><br>"
 	                "<input type='file' name='file' multiple required><br>"
 	                "<input type='file' name='file' multiple required><br>"
 	                "<input type='file' name='file' multiple required><br>"
 	            "</td>"
 	          "</tr>"
 	          "<tr>"
-	            "<th><label for='password'>Passwort</label></th>"
+	            "<th><label for='password'>"_("Password")"</label></th>"
 	            "<td colspan='2'>"
 	              "<input type='text' name='dummy' autocomplete='username' value='-' "
 	                "size='1' maxlength='1' tabindex='-1' style='width: 0; height:0; "
@@ -108,9 +110,9 @@ void print_reply_form(http_context *http, struct board *board, struct thread *th
 		          "<th>Moderation</th>"
 		          "<td colspan='2'>"
 		            "<input type='checkbox' name='pin' id='reply-pin' value='1'> "
-		            "<label for='reply-pin'>Anpinnen</label> "
+		            "<label for='reply-pin'>"_("Pin")"</label> "
 		            "<input type='checkbox' name='close' id='reply-close' value='1'> "
-		            "<label for='reply-pin'>Schließen</label>"
+		            "<label for='reply-pin'>"_("Lock")"</label>"
 		          "</td>"
 		        "</tr>"));
 	}
@@ -149,10 +151,10 @@ void print_top_bar(http_context *http, struct user *user, const char *url)
 	        "<div class='top-bar-right'>"));
 	if (user) {
 		if (user_type(user) == USER_ADMIN || user_type(user) == USER_MOD)
-			PRINT(S("<a href='"), S(PREFIX), S("/dashboard'>Kontrollzentrum</a><span class='space'> </span>"));
-		PRINT(S("<a href='"), S(PREFIX), S("/login?logout&amp;redirect="), E(url), S("'>Ausloggen</a>"));
+			PRINT(S("<a href='"), S(PREFIX), S("/dashboard'>"_("Control Center")"</a><span class='space'> </span>"));
+		PRINT(S("<a href='"), S(PREFIX), S("/login?logout&amp;redirect="), E(url), S("'>"_("Log out")"</a>"));
 	} else {
-		PRINT(S("<a href='"), S(PREFIX), S("/login?redirect="), E(url), S("'>Einloggen</a>"));
+		PRINT(S("<a href='"), S(PREFIX), S("/login?redirect="), E(url), S("'>"_("Log in")"</a>"));
 	}
 	PRINT(S("</div>"));
 	print_board_bar(http);
@@ -173,32 +175,32 @@ void print_mod_bar(http_context *http, int ismod)
 		          "<input type='text' name='dummy' autocomplete='username' value='-' size='1' "
 		            "maxlength='1' style='display:none'>"
 		          "<span class='segment'>"
-		            "<label for='password'>Passwort:</label>"
+		            "<label for='password'>"_("Password")":</label>"
 		            "<span class='space'> </span>"
 		            "<input type='password' name='password' autocomplete='password'>"
 		          "</span><span class='space'> </span>"
 		          "<span class='segment'>"
-		            "<button name='action' value='delete'>Löschen</button>"
+		            "<button name='action' value='delete'>"_("Delete")"</button>"
 		          "</span><span class='space'> </span>"
 		          "<span class='segment'>"
-		            "<button name='action' value='report'>Petzen</button>"
+		            "<button name='action' value='report'>"_("Send")"</button>"
 		          "</span>"
 		        "</div>"));
 	} else {
 		PRINT(S("<div class='mod-bar'>"
 		          "<span class='segment'>"
-		            "<label for='action'>Aktion:</label>"
+		            "<label for='action'>"_("Action")":</label>"
 		            "<span class='space'> </span>"
 		            "<select name='action'>"
-		              "<option value='delete'>Löschen</option>"
-		              "<option value='ban'>Bannen</option>"
-		              "<option value='delete_and_ban'>Löschen + Bannen</option>"
-		              "<option value='close'>Schließen</option>"
-		              "<option value='pin'>Anpinnen</option>"
+		              "<option value='delete'>"_("Delete")"</option>"
+		              "<option value='ban'>"_("Banning")"</option>"
+		              "<option value='delete_and_ban'>"_("Ban and Delete")"</option>"
+		              "<option value='close'>"_("Lock")"</option>"
+		              "<option value='pin'>"_("Pin")"</option>"
 		            "</select>"
 		          "</span><span class='space'> </span>"
 		          "<span class='segment'>"
-		            "<input type='submit' value='Ausführen'>"
+		            "<input type='submit' value='"_("Apply")"'>"
 		          "</span>"
 		        "</div>"));
 	}
@@ -423,7 +425,7 @@ void print_page_footer(http_context *http)
 {
 	PRINT(S(    "<div class='footer'>"
 	              "Proudly made without PHP, Java, Perl, MySQL, Postgres, MongoDB and Node.js.<br>"
-	              "<small><a href='https://gitgud.io/zuse/dietchan'>Quellcode</a></small>"
+	              "<small><a href='https://gitgud.io/zuse/dietchan'>"_("Source Code")"</a></small>"
 	            "</div>"
 	          "</body>"
 	        "</html>"));
@@ -593,11 +595,11 @@ void print_post(http_context *http, struct post *post, int absolute_url, int fla
 	                  "<span class='number'>Nr. "), U64(post_id(post)), S("</span>"
 	                  "<span class='space'> </span>"),
 	                  (post_sage(post))?
-	                    S("<span class='sage'>SÄGE</span>"):S(""),
+	                    S("<span class='sage'>"_("SAGE")"</span>"):S(""),
 	                  (thread_pinned(thread) && thread_first_post(thread) == post)?
-	                    S("<span class='sticky'>Klebrig</span><span class='space'> </span>"):S(""),
+	                    S("<span class='sticky'>"_("Sticky")"</span><span class='space'> </span>"):S(""),
 	                  (thread_closed(thread) && thread_first_post(thread) == post)?
-	                    S("<span class='closed'>Geschlossen</span><span class='space'> </span>"):S(""), S(
+	                    S("<span class='closed'>"_("Closed")"</span><span class='space'> </span>"):S(""), S(
 	                "</div>"
 	                "<div class='content'>"));
 	struct upload *up = post_first_upload(post);

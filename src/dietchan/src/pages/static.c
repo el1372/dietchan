@@ -18,6 +18,8 @@
 #include "../tpl.h"
 #include "../mime_types.h"
 
+#include "../locale.h"
+
 static int static_page_request (http_context *http, http_method method, char *path, char *query);
 static int static_page_header (http_context *http, char *key, char *val);
 static int static_page_finish (http_context *http);

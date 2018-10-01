@@ -7,6 +7,8 @@
 #include "../params.h"
 #include "../bans.h"
 
+#include "../locale.h"
+
 static int banned_page_header (http_context *http, char *key, char *val);
 static int banned_page_finish (http_context *http);
 static void banned_page_finalize (http_context *http);
@@ -65,10 +67,10 @@ static void banned_page_ban_callback(struct ban *ban, struct ip *ip, void *extra
 		if (!page->any_ban)
 			banned_page_print_header(http, "Gebannt");
 		PRINT(S("<div class='ban'>"
-		        "<p>Deine IP ("), IP(*ip), S(") gehört zum Subnetz "), IP(range.ip), S("/"), I64(range.range), S(
-		        ", welches aus folgendem Grund gebannt wurde:</p>"
-		        "<p>"), ban_reason(ban)?E(ban_reason(ban)):S("<i>Kein Grund angegeben</i>"), S("</p>"
-		        "<p>Bretter: "));
+		        "<p>" _("Your IP") " ("), IP(*ip), S(") " _("is within the subnet") " "), IP(range.ip), S("/"), I64(range.range), S(
+		        ", " _("which was banned for the following reason") ":</p>"
+		        "<p>"), ban_reason(ban)?E(ban_reason(ban)):S("<i>" _("No reason given") "</i>"), S("</p>"
+		        "<p>" _("Board") ": "));
 		if (!bids) {
 			PRINT(S("alle.jpg"));
 		} else {
@@ -82,8 +84,8 @@ static void banned_page_ban_callback(struct ban *ban, struct ip *ip, void *extra
 			}
 		}
 		PRINT(S("<br>"
-		        "Gebannt seit: "), HTTP_DATE(ban_timestamp(ban)), S("<br>"
-		        "Gebannt bis: "),  ban_duration(ban)<=0?S("<i>Unbegrenzt</i>"):HTTP_DATE(ban_timestamp(ban)+ban_duration(ban)), S(
+		        _("Banned since") ": "), HTTP_DATE(ban_timestamp(ban)), S("<br>"
+		        _("Banned until") ": "),  ban_duration(ban)<=0?S("<i>" _("Unlimited") "</i>"):HTTP_DATE(ban_timestamp(ban)+ban_duration(ban)), S(
 		        "</p>"
 		        "</div>"));
 
@@ -110,8 +112,8 @@ static int banned_page_finish (http_context *http)
 	}
 
 	if (!page->any_ban) {
-		banned_page_print_header(http, "Nicht gebannt");
-		PRINT(S("<p>Deine IP scheint derzeit nicht gebannt zu sein.</p>"));
+		banned_page_print_header(http, _("Not banned"));
+		PRINT(S("<p>" _("Your IP is not currently banned") "</p>"));
 	}
 
 	print_page_footer(http);

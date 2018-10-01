@@ -16,6 +16,8 @@
 #include "../permissions.h"
 #include "../bbcode.h"
 
+#include "../locale.h"
+
 static int thread_page_request (http_context *http, http_method method, char *path, char *query);
 static int thread_page_header (http_context *http, char *key, char *val);
 static int thread_page_cookie (http_context *http, char *key, char *val);
@@ -99,7 +101,7 @@ static void write_thread_nav(http_context *http, struct thread *thread)
 	struct board *board = thread_board(thread);
 
 	PRINT(S("<div class='thread-nav'>"
-	          "<a href='"), S(PREFIX), S("/"), E(board_name(board)), S("/'>[Zurück]</a>"
+	          "<a href='"), S(PREFIX), S("/"), E(board_name(board)), S("/'>[" _("Back") "]</a>"
 	        "</div>"));
 }
 
@@ -113,7 +115,7 @@ static int thread_page_finish (http_context *http)
 		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
-		        "<p>Das Brett wurde nicht gefunden :(.<p>"));
+		        "<p>" _("The board was not found") " :(.<p>"));
 		PRINT_EOF();
 		return 0;
 	}
@@ -129,7 +131,7 @@ static int thread_page_finish (http_context *http)
 		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
-		        "<p>Faden existiert nicht :(.<p>"));
+		        "<p>" _("Thread does not exist") " :(.<p>"));
 		PRINT_EOF();
 		return 0;
 	}

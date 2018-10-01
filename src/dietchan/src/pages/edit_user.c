@@ -8,6 +8,8 @@
 #include "../util.h"
 #include "dashboard.h"
 
+#include "../locale.h"
+
 static int  edit_user_page_get_param (http_context *http, char *key, char *val);
 static int  edit_user_page_post_param (http_context *http, char *key, char *val);
 static int  edit_user_page_cookie (http_context *http, char *key, char *val);
@@ -95,27 +97,27 @@ static void edit_user_page_print_form(http_context *http)
 {
 	struct edit_user_page *page = (struct edit_user_page*)http->info;
 
-	PRINT(S("<h2>"), case_equals(page->action, "add")?S("Benutzer hinzufügen"): S("Benutzer bearbeiten"), S("</h2>"),
+	PRINT(S("<h2>"), case_equals(page->action, "add")?S(_("Add user")): S(_("Edit user")), S("</h2>"),
 	      (user_id(page->user) == page->user_id)?
-	        S("<p><span class='warning'>Achtung! Du bearbeitest dein eigenes Benutzerkonto</span></p>"):S(""),
+	        S("<p><span class='warning'>" _("Warning! Your are editing your own user account") "</span></p>"):S(""),
 	      S("<form method='post'>"
 	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
 	          "<input type='hidden' name='submitted' value='1'>"
 	          "<input type='hidden' name='user_id' value='"), I64(page->user_id), S("'>"
 	           "<p><table>"
 	             "<tr>"
-	               "<th><label for='user_name'>Name: </label></th>"
+	               "<th><label for='user_name'>" _("Name") ": </label></th>"
 	               "<td><input type='text' name='user_name' value='"), E(page->user_name), S("' required"),
 	               (!can_edit_everything(page))?S(" disabled"):S(""), S("></td>"
 	             "</tr><tr>"
-	               "<th><label for='user_type'>Rolle: </label></th>"
+	               "<th><label for='user_type'>" _("Role") ": </label></th>"
 	               "<td><select name='user_type' required"),
 	               (!can_edit_everything(page))?S(" disabled"):S(""), S(">"
 	                     "<option value='mod'"),   (page->user_type == USER_MOD)?S(" selected"):S(""),   S(">Mod</option>"
 	                     "<option value='admin'"), (page->user_type == USER_ADMIN)?S(" selected"):S(""), S(">Admin</option>"
 	                   "</select></td>"
 	             "</tr><tr>"
-	               "<th><label for='boards'>Bretter: </label></th>"
+	               "<th><label for='boards'>" _("Board") ": </label></th>"
 	               "<td><input type='text' name='boards' value='"));;
 	if (page->boards) {
 		PRINT(E(page->boards));
@@ -137,16 +139,16 @@ static void edit_user_page_print_form(http_context *http)
 	               "<th><label for='user_email'>E-Mail: </label></th>"
 	               "<td><input type='text' name='user_email' value='"), E(page->user_email), S("' optional></td>"
 	             "</tr></tr>"
-	               "<th><label for='user_password'>Passwort: </label></th>"
+	               "<th><label for='user_password'>" _("Password") ": </label></th>"
 	               "<td><input type='password' name='user_password' value='"), E(page->user_password), S("'"),
 	               (case_equals(page->action, "add"))?S(" required"):S(""), S("></td>"
 	             "</tr><tr>"
-	               "<th><label for='user_password_confirm'>Bestätigen: </label></th>"
+	               "<th><label for='user_password_confirm'>" _("Confirm") ": </label></th>"
 	               "<td><input type='password' name='user_password_confirm' value='"), E(page->user_password_confirm), S("'"),
 	               (case_equals(page->action, "add"))?S(" required"):S(""), S("></td>"
 	             "</tr>"
 	           "</table></p>"
-	           "<p><input type='submit' value='Übernehmen'></p></form>"));
+	           "<p><input type='submit' value='" _("Submit") "'></p></form>"));
 }
 
 static void edit_user_page_print_confirmation(http_context *http)
@@ -157,9 +159,9 @@ static void edit_user_page_print_confirmation(http_context *http)
 	          "<input type='hidden' name='user_id' value='"), I64(page->user_id), S("'>"
 	          "<p><label>"
 	            "<input type='checkbox' name='confirmed' value='1'>"
-	            "Benutzer '"), E(user_name(user)),S("' wirklich löschen."
+	            _("User '")), E(user_name(user)),S("' " _("really delete") "."
 	          "</label></p>"
-	          "<p><input type='submit' value='Löschen'></p></form>"));
+	          "<p><input type='submit' value='" _("Delete") "'></p></form>"));
 }
 
 static int edit_user_page_finish (http_context *http)
@@ -171,10 +173,10 @@ static int edit_user_page_finish (http_context *http)
 	if (!page->user ||
 	    !(user_type(page->user) == USER_ADMIN ||
 		  user_id(page->user) == page->user_id)) {
-		PRINT_STATUS_HTML("403 Verboten");
+		PRINT_STATUS_HTML("403 " _("Forbidden"));
 		PRINT_SESSION();
-		PRINT(S("<h1>403 Verboten</h1>"
-		        "Du kommst hier nid rein."));
+		PRINT(S("<h1>403 " _("Forbidden") "</h1>"
+		        _("You shall not pass")));
 		PRINT_EOF();
 		return 0;
 	}
@@ -206,7 +208,7 @@ static int edit_user_page_finish (http_context *http)
 			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http, user_id(page->user));
-			PRINT(S("<span class='error'>Benutzer existiert nicht.</span>"));
+			PRINT(S("<span class='error'>" _("User does not exist") ".</span>"));
 			write_dashboard_footer(http);
 			return 0;
 	    }
@@ -214,10 +216,10 @@ static int edit_user_page_finish (http_context *http)
 
 	if (case_equals(page->action, "delete")) {
 		if (user == page->user) {
-			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_STATUS_HTML("403 " _("Forbidden") "");
 			PRINT_SESSION();
 			PRINT_BODY();
-			PRINT(S("<p>Du kannst dein eigenes Benutzerkonto nicht löschen.</p>"));
+			PRINT(S("<p>" _("You cannot delete your own account") ".</p>"));
 			PRINT_EOF();
 			return 0;
 		}
@@ -240,25 +242,25 @@ static int edit_user_page_finish (http_context *http)
 
 			if (str_equal(page->user_name, "")) {
 				ERROR_HEADER();
-				PRINT(S("<p class='error'>Bitte User-Namen eingeben</p>"));
+				PRINT(S("<p class='error'>" _("Please enter a username") "</p>"));
 			}
 
 			if (case_equals(page->action, "add")) {
 				if (str_equal(page->user_password, "")) {
 					ERROR_HEADER();
-					PRINT(S("<p class='error'>Bitte Passwort eingeben</p>"));
+					PRINT(S("<p class='error'>" _("Please enter a password") "</p>"));
 				}
 			}
 
 			if (!str_equal(page->user_password, page->user_password_confirm)) {
 				ERROR_HEADER();
-				PRINT(S("<p class='error'>Passwörter stimmen nicht überein.</p>"));
+				PRINT(S("<p class='error'>" _("Passwords do not match") ".</p>"));
 			}
 
 			if (find_user_by_name(page->user_name) != user) {
 				ERROR_HEADER();
-				PRINT(S("<p class='error'>Ein Benutzer mit dem Namen '"), E(page->user_name),
-				      S("' existiert bereits. Bitte einen anderen Namen eingeben.</p>"));
+				PRINT(S("<p class='error'>" _("A user named") " '"), E(page->user_name),
+				      S("' " _("already exists. Please enter a new name") ".</p>"));
 			}
 
 			if (page->boards) {

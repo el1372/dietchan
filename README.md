@@ -1,27 +1,26 @@
-# Beschreibung
-Dietchan ist eine in C geschriebene Imageboard-Software.
+# Description
+Dietchan is an imageboard written in C.
 
 Features:
 
-- klein, schnell
-- kein JS
-- kein Caching, alles wird on-the-fly generiert
-- kein Bloat™
-- 9000 Zeilen reines C
-- single-threaded, asynchron
-- altbackenes Design
+- small and fast
+- no JS
+- no caching, all page generation done on the fly.
+- no bloat™
+- 9000 lines of pure C
+- single-threaded, event based
+- stale design
 - Web 1.0
 
-Beispiel-Installation:
-https://li691-139.members.linode.com/
+Example installation: https://dietchan.org/
 
-## Wichtiger Hinweis
+## Import Note
 
-Das Datenbankformat könnte sich in Zukunft noch ändern, daher ist die Software momentan nicht für den Produktivbetrieb geeignet.
+The database format may change in the future, so the software is not currently suitable for production use.
 
-## Build-Abhängigkeiten
+## Build-Dependencies
 
-### Notwendig:
+### Necessary:
 
 - Linux
 - GCC
@@ -29,21 +28,23 @@ Das Datenbankformat könnte sich in Zukunft noch ändern, daher ist die Software
 - git
 - cvs
 
-## Laufzeit-Abhängigkeiten
+## Runtime-Dependencies
 
-### Notwendig:
+### Necessary:
 
 - Linux
 - file
 - Imagemagick
 - ffmpeg
 
-### Empfohlen:
+### Recommended:
 
 - pngquant
 
-## Kompilieren
+## Compile:
 
     cmake -DCMAKE_BUILD_TYPE=Release . && make
 
-So ein Fach ist das!
+As simple as that!
+
+Originally hosted at https://gitgud.io/zuse/dietchan

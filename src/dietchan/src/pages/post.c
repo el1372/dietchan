@@ -37,6 +37,8 @@
 #include "../tpl.h"
 #include "../mime_types.h"
 
+#include "../locale.h"
+
 
 static int  post_page_header (http_context *http, char *key, char *val);
 static int  post_page_post_param (http_context *http, char *key, char *val);
@@ -362,20 +364,20 @@ static int post_page_finish (http_context *http)
 	if (page->thread == -1) {
 		board = find_board_by_id(page->board);
 		if (!board) {
-			PRINT_STATUS_HTML("404 Gibbet nich");
+			PRINT_STATUS_HTML("404 " _("Not Found") "");
 			PRINT_SESSION();
 			PRINT_BODY();
-			PRINT(S("<h1>Brett existiert nicht :(</h1>"));
+			PRINT(S("<h1>" _("Board does not exist") " :(</h1>"));
 			PRINT_EOF();
 			return ERROR;
 		}
 	} else {
 		thread = find_thread_by_id(page->thread);
 		if (!thread) {
-			PRINT_STATUS_HTML("404 Gibbet nich");
+			PRINT_STATUS_HTML("404 " _("Not Found") "");
 			PRINT_SESSION();
 			PRINT_BODY();
-			PRINT(S("<h1>Faden existiert nicht :(</h1>"));
+			PRINT(S("<h1>" _("Thread does not exist") " :(</h1>"));
 			PRINT_EOF();
 			return ERROR;
 		}
@@ -384,10 +386,10 @@ static int post_page_finish (http_context *http)
 
 		if (thread_closed(thread) &&
 		    !(is_mod_for_board(page->user, board) && page->role[0] != '\0')) {
-			PRINT_STATUS_HTML("402 Verboten");
+			PRINT_STATUS_HTML("402 " _("Forbidden") "");
 			PRINT_SESSION();
 			PRINT_BODY();
-			PRINT(S("<h1>Faden geschlossen.</h1>"));
+			PRINT(S("<h1>" _("Thread closed") ".</h1>"));
 			PRINT_EOF();
 			return ERROR;
 		}
@@ -411,7 +413,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Beitrag muss einen Text enthalten!</h1>"));
+		PRINT(S("<h1>" _("Post must contain text") "!</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -421,7 +423,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Neuer Faden muss ein Bild enthalten.</h1>"));
+		PRINT(S("<h1>" _("A new thread must have a picture") ".</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -431,7 +433,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Beitrag ist zu lang! (maximal "), I64(POST_MAX_BODY_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>" _("A Post") " " _("is too long! (maximum") " "), I64(POST_MAX_BODY_LENGTH), S(" " _("chars") ")</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -440,7 +442,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Betreff ist zu lang! (maximal "), I64(POST_MAX_SUBJECT_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>" _("Subject") " " _("is too long! (maximum") " "), I64(POST_MAX_SUBJECT_LENGTH), S(" " _("chars") ")</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -449,7 +451,7 @@ static int post_page_finish (http_context *http)
 		PRINT_STATUS_HTML("400 Not okay");
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>Name ist zu lang! (maximal "), I64(POST_MAX_NAME_LENGTH), S(" Zeichen)</h1>"));
+		PRINT(S("<h1>" _("Name") " " _("is too long! (maximum") " "), I64(POST_MAX_NAME_LENGTH), S(" " _("chars") ")</h1>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -461,9 +463,9 @@ static int post_page_finish (http_context *http)
 
 	if (flood) {
 		uint64 now = time(0);
-		PRINT_STATUS_HTML("403 Verboten");
+		PRINT_STATUS_HTML("403 " _("Forbidden") "");
 		PRINT_BODY();
-		PRINT(S("<p>Flood protection: Du kannst den nächsten Beitrag erst in "), U64(flood - now), S(" Sekunden erstellen.</p>"));
+		PRINT(S("<p>" _("Flood Protection: You may retry in") " "), U64(flood - now), S(" " _("seconds") ".</p>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -472,17 +474,17 @@ static int post_page_finish (http_context *http)
 	if (any_ip_affected(&page->ip, &page->x_real_ip, &page->x_forwarded_for,
 	                    board, BAN_TARGET_POST, is_captcha_required)) {
 		if (!page->captcha || str_equal(page->captcha, "")) {
-			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_STATUS_HTML("403 " _("Forbidden") "");
 			PRINT_BODY();
-			PRINT(S("<p>Du hast das Captcha nicht eingegeben.</p>"));
+			PRINT(S("<p>" _("You didn't enter the captcha") ".</p>"));
 			PRINT_EOF();
 			return ERROR;
 		}
 		struct captcha *captcha = find_captcha_by_id(page->captcha_id);
 		if (!captcha || captcha_token(captcha) != page->captcha_token) {
-			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_STATUS_HTML("403 " _("Forbidden") "");
 			PRINT_BODY();
-			PRINT(S("<p>Captcha abgelaufen :(</p>"));
+			PRINT(S("<p>" _("Captcha expired") " :(</p>"));
 			PRINT_EOF();
 			return ERROR;
 		}
@@ -491,9 +493,9 @@ static int post_page_finish (http_context *http)
 			replace_captcha(captcha);
 		else {
 			invalidate_captcha(captcha);
-			PRINT_STATUS_HTML("403 Verboten");
+			PRINT_STATUS_HTML("403 " _("Forbidden") "");
 			PRINT_BODY();
-			PRINT(S("<p>Dein eingegebenes Captcha stimmt leider nicht :(</p>"));
+			PRINT(S("<p>" _("Entered captcha is incorrect") " :(</p>"));
 			PRINT_EOF();
 			return ERROR;
 		}
@@ -618,7 +620,7 @@ static int post_page_finish (http_context *http)
 		strcat(filename, upload_job->file_ext);
 
 		char thumb_filename[32];
-		byte_zero(thumb_filename, sizeof(filename));
+		byte_zero(thumb_filename, sizeof(thumb_filename));
 		fmt_uint64(thumb_filename, upload_id);
 		strcat(thumb_filename, "s");
 		strcat(thumb_filename, upload_job->thumb_ext);

@@ -9,6 +9,8 @@
 #include "../print.h"
 #include "dashboard.h"
 
+#include "../locale.h"
+
 static int  edit_board_page_get_param (http_context *http, char *key, char *val);
 static int  edit_board_page_post_param (http_context *http, char *key, char *val);
 static int  edit_board_page_cookie (http_context *http, char *key, char *val);
@@ -69,21 +71,21 @@ static void edit_board_page_print_form(http_context *http)
 {
 	struct edit_board_page *page = (struct edit_board_page*)http->info;
 
-	PRINT(S("<h2>"), case_equals(page->action, "add")?S("Brett hinzufügen"):S("Brett bearbeiten"), S("</h2>"
+	PRINT(S("<h2>"), case_equals(page->action, "add")?S(_("Add a board")):S(_("Edit board")), S("</h2>"
 	        "<form method='post'>"
 	          "<input type='hidden' name='action' value='"), E(page->action), S("'>"
 	           "<input type='hidden' name='submitted' value='1'>"
 	           "<input type='hidden' name='board_id' value='"), I64(page->board_id), S("'>"
 	           "<p><table>"
 	           "<tr>"
-	             "<th><label for='board_name'>Name (URL): </label></th>"
+	             "<th><label for='board_name'>" _("Name") " (URL): </label></th>"
 	             "<td><input type='text' name='board_name' value='"), E(page->board_name), S("' required></td>"
 	           "</tr><tr>"
-	             "<th><label for='board_title'>Titel: </label></th>"
+	             "<th><label for='board_title'>" _("Title") ": </label></th>"
 	             "<td><input type='text' name='board_title' value='"), E(page->board_title), S("'></td>"
 	             "</tr>"
 	           "</table></p>"
-	           "<p><input type='submit' value='Übernehmen'></p>"
+	           "<p><input type='submit' value='" _("Submit") "'></p>"
 	         "</form>"));
 }
 
@@ -95,9 +97,9 @@ static void edit_board_page_print_confirmation(http_context *http)
 	        "<input type='hidden' name='board_id' value='"), I64(page->board_id), S("'>"
 	        "<p><label>"
 	             "<input type='checkbox' name='confirmed' value='1'>"
-	             "Brett /"), E(board_name(board)), S("/ wirklich löschen."
+	             _("Board") " /"), E(board_name(board)), S("/ " _("really delete") "."
 	        "</label></p>"
-	        "<p><input type='submit' value='Löschen'></p></form>"));
+	        "<p><input type='submit' value='" _("Delete") "'></p></form>"));
 }
 
 static int edit_board_page_finish (http_context *http)
@@ -107,11 +109,11 @@ static int edit_board_page_finish (http_context *http)
 	// Check permission
 
 	if (!page->user || user_type(page->user) != USER_ADMIN) {
-		PRINT_STATUS_HTML("403 Verboten");
+		PRINT_STATUS_HTML("403 " _("Forbidden"));
 		PRINT_SESSION();
 		PRINT_BODY();
-		PRINT(S("<h1>403 Verboten</h1>"
-		        "Du kommst hier nid rein."));
+		PRINT(S("<h1>403 " _("Forbidden") "</h1>"
+		        _("You shall not pass")));
 		PRINT_EOF();
 		return 0;
 	}
@@ -133,7 +135,7 @@ static int edit_board_page_finish (http_context *http)
 			PRINT_SESSION();
 			PRINT_BODY();
 			write_dashboard_header(http,0);
-			PRINT(S("<span class='error'>Brett existiert nicht.</span>"));
+			PRINT(S("<span class='error'>" _("Board does not exist") ".</span>"));
 			write_dashboard_footer(http);
 			return 0;
 		}
@@ -148,7 +150,7 @@ static int edit_board_page_finish (http_context *http)
 				PRINT_SESSION();
 				PRINT_BODY();
 				write_dashboard_header(http,user_id(page->user));
-				PRINT(S("<p class='error'>Bitte Brett-Namen eingeben</p>"));
+				PRINT(S("<p class='error'>" _("Please enter board name") "</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
 				PRINT_EOF();
@@ -160,8 +162,8 @@ static int edit_board_page_finish (http_context *http)
 				PRINT_SESSION();
 				PRINT_BODY();
 				write_dashboard_header(http, user_id(page->user));
-				PRINT(S("<p class='error'>Ein Brett mit dem Namen '"), E(page->board_name),
-				      S("' existiert bereits. Bitte einen anderen Namen eingeben.</p>"));
+				PRINT(S("<p class='error'>" _("A board named") " '"), E(page->board_name),
+				      S("' " _("already exists. Please enter a new name") ".</p>"));
 				edit_board_page_print_form(http);
 				write_dashboard_footer(http);
 				PRINT_EOF();

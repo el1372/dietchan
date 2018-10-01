@@ -11,6 +11,8 @@
 #include "../bans.h"
 #include "../permissions.h"
 
+#include "../locale.h"
+
 static int board_page_request (http_context *http, http_method method, char *path, char *query);
 static int board_page_header (http_context *http, char *key, char *val);
 static int board_page_get_param (http_context *http, char *key, char *val);
@@ -134,7 +136,7 @@ static int  board_page_finish (http_context *http)
 		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
-		        "<p>Das Brett wurde nicht gefunden :(.</p>"));
+		        "<p>" _("The board was not found") " :(.</p>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -148,7 +150,7 @@ static int  board_page_finish (http_context *http)
 		PRINT_SESSION();
 		PRINT_BODY();
 		PRINT(S("<h1>404</h1>"
-		        "<p>Die Seite wurde nicht gefunden.</p>"));
+		        "<p>" _("Page not found") ".</p>"));
 		PRINT_EOF();
 		return ERROR;
 	}
@@ -188,7 +190,7 @@ static int  board_page_finish (http_context *http)
 			if (thread_post_count(thread) > PREVIEW_REPLIES + 1) {
 				uint64 n = thread_post_count(thread) - PREVIEW_REPLIES-1;
 				PRINT(S("<div class='thread-stats'>"), U64(n), S(" "),
-				       (n > 1)?S("Antworten"):S("Antwort"), S(" nicht angezeigt.</div>"));
+				       (n > 1)?S(_("Replies")):S(_("Reply")), S(" " _("not displayed") ".</div>"));
 			}
 
 			struct post *reply = thread_last_post(thread);
